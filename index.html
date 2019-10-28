@@ -1,0 +1,332 @@
+<html>
+<head>
+  <title>
+    Evolve HellSim
+  </title>
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/hellsim.css" />
+
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="js/lz-string/lz-string.min.js" type="text/javascript"></script>
+  <script src="js/hellsim.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+  <div class="row">
+    <div class="col-auto"><h3>Evolve Hell Simulator</h3></div>
+    <div class="col-auto">By jotun<br>Based on <a href="https://pmotschmann.github.io/Evolve/">Evolve by Demagorddon</a> v0.6.21</div>
+    <div class="col-auto">
+      <form class="form-inline" id="importForm">
+        <input type="textarea" class="form-control mb-2 mr-sm-2" id="saveString" placeholder="Evolve Save String"></input>
+        <button class="btn btn-primary mb-2" type="submit">Import Save</button>
+      </form>
+    </div>
+  </div>
+  <form id="paramsForm">
+    <div class="form-group">
+      <h5>Traits</h5>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="apexPredator">
+          <label class="form-check-label" for="apexPredator">Apex Predator (Sharkin)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="aquatic">
+          <label class="form-check-label" for="aquatic">Aquatic (Genus)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="armored">
+          <label class="form-check-label" for="armored">Armored (Tortoise)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="brute">
+          <label class="form-check-label" for="brute">Brute (Orc)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="cannibal" checked>
+          <label class="form-check-label" for="cannibal">Cannibal (Mantis)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="cautious" disabled>
+          <label class="form-check-label" for="cautious">Cautious (Animal)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="chameleon">
+          <label class="form-check-label" for="chameleon">Chameleon (Gecko)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="claws">
+          <label class="form-check-label" for="claws">Claws (Scorpid)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="diverse">
+          <label class="form-check-label" for="diverse">Diverse (Human)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="evil">
+          <label class="form-check-label" for="evil">Evil (Demons or Universe)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="fiery">
+          <label class="form-check-label" for="fiery">Fiery (Balorg)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="hivemind" checked>
+          <label class="form-check-label" for="hivemind">Hivemind (Antid)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="hyper">
+          <label class="form-check-label" for="hyper">Hyper (Cacti)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="kindling">
+          <label class="form-check-label" for="kindling">Kindred Kindling (Ent)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="parasite">
+          <label class="form-check-label" for="parasite">Parasite (Sporgar)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="pathetic">
+          <label class="form-check-label" for="pathetic">Pathetic (Imp)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="puny">
+          <label class="form-check-label" for="puny">Puny (Gnome)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="rage">
+          <label class="form-check-label" for="rage">Rage (Planet)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="regenerative">
+          <label class="form-check-label" for="regenerative">Regenerative (Troll)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="scales">
+          <label class="form-check-label" for="scales">Scales (Reptiles)</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="slaver">
+          <label class="form-check-label" for="slaver">Slaver (Balorg)</label>
+        </div>
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="slow">
+          <label class="form-check-label" for="slow">Slow (Tortoise)</label>
+        </div>
+        <div class="col">
+        </div>
+        <div class="col">
+        </div>
+        <div class="col">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <h5>Civilization</h5>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <label for="weaponTech">Weapon Tech Level</label>
+          <select class="form-control form-control-sm param" id="weaponTech">
+            <option value=1>None</option>
+            <option value=2>Bows</option>
+            <option value=3>Flintlock Rifles</option>
+            <option value=4>Machine Guns</option>
+            <option value=5>Rail Guns</option>
+            <option value=6 selected>Laser Rifles</option>
+            <option value=7>Plasma Rifles</option>
+            <option value=8>Disruptor Rifles</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="armorTech">Armor Tech Level</label>
+          <select class="form-control form-control-sm param" id="armorTech">
+            <option value=0>None</option>
+            <option value=1>Leather Armor</option>
+            <option value=2>Plate Armor</option>
+            <option value=3 selected>Kevlar</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="tactical">Tactical Genes</label>
+          <input class="form-control form-control-sm param" id="tactical" value="0" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="temples">Fanatical Temples</label>
+          <input class="form-control form-control-sm param" id="temples" value="42" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="darkEnergy">Evil Universe Dark Energy</label>
+          <input class="form-control form-control-sm param" id="darkEnergy" value="0" type="number" step=".01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <label for="bootCamps">Boot Camps</label>
+          <input class="form-control form-control-sm param" id="bootCamps" value="0" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="vrTraining">VR Training</label>
+          <select class="form-control form-control-sm param" id="vrTraining">
+            <option value=false selected>No</option>
+            <option value=true>Yes</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="hospitals">Hospitals</label>
+          <input class="form-control form-control-sm param" id="hospitals" value="0" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="bacTanks">BAC Tanks</label>
+          <select class="form-control form-control-sm param" id="bacTanks">
+            <option value=false>No</option>
+            <option value=true selected>Yes</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="fibroblast">Fibroblast Genes</label>
+          <input class="form-control form-control-sm param" id="fibroblast" value="0" type="number">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <h5>Hell Setup</h5>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <label for="patrols">Patrols</label>
+          <input class="form-control form-control-sm param" id="patrols" value="5" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="patrolSize">Patrol Size</label>
+          <input class="form-control form-control-sm param" id="patrolSize" value="8" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="fortressTroops">Fortress Troops</label>
+          <input class="form-control form-control-sm param" id="defenders" value="20" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="garrison">Garrison Troops</label>
+          <input class="form-control form-control-sm param" id="garrison" value="27" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="surveyors">Surveyors</label>
+          <input class="form-control form-control-sm param" id="surveyors" value="9" type="number">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <label for="turrets">Turrets</label>
+          <input class="form-control form-control-sm param" id="turrets" value="3" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="turretTech">Turret Tech</label>
+          <select class="form-control form-control-sm param" id="turretTech">
+            <option value=0>Automated Turrets</option>
+            <option value=1 selected>Laser Turrets</option>
+            <option value=2>Plasma Turrets</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="beacons">Attractor Beacons</label>
+          <input class="form-control form-control-sm param" id="beacons" value="0" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="predators">Predator Drones</label>
+          <input class="form-control form-control-sm param" id="predators" value="0" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="droids">War Droids</label>
+          <input class="form-control form-control-sm param" id="droids" value="0" type="number">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <h5>Sim Options</h5>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <label for="hours">Sim Hours</label>
+          <input class="form-control form-control-sm param" id="hours" value="96" type="number" step=".01">
+        </div>
+        <div class="form-group col-sm">
+          <label for="threat">Initial Threat</label>
+          <input class="form-control form-control-sm param" id="threat" value="1000" type="number">
+        </div>
+        <div class="form-group col-sm">
+          <label for="sieges">Sieges</label>
+          <select class="form-control form-control-sm param" id="sieges">
+            <option value=false>No</option>
+            <option value=true selected>Yes</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="surges">Demon Surges</label>
+          <select class="form-control form-control-sm param" id="surges">
+            <option value=false>No</option>
+            <option value=true selected>Yes</option>
+          </select>
+        </div>
+        <div class="form-group col-sm">
+          <label for="terrorists">Terrorists</label>
+          <select class="form-control form-control-sm param" id="terrorists">
+            <option value=false>No</option>
+            <option value=true selected>Yes</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <!--<div class="form-group col-sm-3">
+          <label for="verbose">Output</label>
+          <select class="form-control form-control-sm param" id="verbose">
+            <option value=false selected>Summary</option>
+            <option value=true>Verbose</option>
+          </select>
+        </div>-->
+        <div class="col">
+          <input class="form-check-input param" type="checkbox" id="verbose">
+          <label class="form-check-label" for="verbose">Verbose Output (recommended only for short sims)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row align-items-center">
+      <div class="col">
+        <button class="btn btn-primary" type="submit">Simulate</button>
+      </div>
+      <label for="patrolRating" class="col-auto col-form-label">Patrol Rating:</label>
+      <div class="col-auto">
+        <input class="form-control-plaintext text-success form-control-lg" id="patrolRating" value="" readonly></textarea>
+      </div>
+      <label for="fortressRating" class="col-auto col-form-label">Fortress Rating:</label>
+      <div class="col-auto">
+        <input class="form-control-plaintext text-success form-control-lg" id="fortressRating" value="" readonly></textarea>
+      </div>
+      <label for="trainingRate" class="col-auto col-form-label">Training Rate:</label>
+      <div class="col-auto">
+        <input class="form-control-plaintext text-success form-control-lg" id="trainingRate" value="" readonly></textarea>
+      </div>
+    </div>
+  </form>
+
+  <textarea class="form-control form-control-sm" id="result" rows="30" readonly></textarea>
+  
+  <br><br><br><br>
+
+</body>
+
+
+</html>

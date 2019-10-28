@@ -576,7 +576,18 @@ function ArmyRating(params, sim, size) {
     if (params.chameleon) {
         rating *= 1.2;
     }
-    // if (params.cautious && weather stuff)
+    if (params.cautious) {
+        if (sim) {
+            /* Not doing a full weather sim here, but it rains about 21.6% of the time
+               in most biomes */
+            if (Rand(0, 1000) < 216) {
+                rating *= 0.9;
+            }
+        } else {
+            /* Approximate 0.9784 multiplier (1 * (1 - 0.216) + 0.9 * .216) */
+            rating *= 0.9784;
+        }
+    }
     if (params.apexPredator) {
         rating *= 1.25;
     }
@@ -662,16 +673,27 @@ function OnChange() {
     patrolRating = ArmyRating(params, false, params.patrolSize);
     patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
     
+    ratingStr = "";
+    if (params.cautious) {
+        ratingStr += "~ ";
+    }    
     if (params.droids >= params.patrols) {
-        $('#patrolRating').val(patrolRatingDroids);
+        ratingStr += patrolRatingDroids;
     } else if (params.droids > 0) {
-        $('#patrolRating').val(''.concat(patrolRating, " / ", patrolRatingDroids));
+        ratingStr += patrolRating + " / " + patrolRatingDroids;
     } else {
-        $('#patrolRating').val(patrolRating);
+        ratingStr += patrolRating;
     }
+    $('#patrolRating').val(ratingStr);
+    
     
     fortressRating = FortressRating(params, false);
-    $('#fortressRating').val(fortressRating);
+    if (params.cautious) {
+        ratingStr = "~ " + fortressRating;
+    } else {
+        ratingStr = fortressRating;
+    }
+    $('#fortressRating').val(ratingStr);
     
     /* Get the training time, then round up to next tick and convert to seconds */
     trainingTime = TrainingTime(params);
@@ -761,17 +783,6 @@ function GetParams() {
 
 /* Fill parameter values back to the form */
 function SetParams(params) {
-    /*
-    $('.param').each(function(index, element) {
-        var el = $(element);
-        var id = el.attr('id');
-        if (el.attr('type') == "checkbox") {
-            el[0].checked = params[id];
-        } else {
-            el.val(params[id]);
-        }
-    });
-    */
     for (const key of Object.keys(params)) {
         let id = "#" + key;
         let el = $(id);
@@ -860,12 +871,12 @@ function ConvertSave(save) {
 }
 
 $(document).ready(function() {
-    console.log("I'm ready");
+    console.log("Ready");
     $('#result').val("Ready\n");
     
     $('#paramsForm').submit(function(event) {
         event.preventDefault();
-        setTimeout(Simulate, 20);
+        setTimeout(Simulate, 10);
     });
     
     $('#importForm').submit(function(event) {
@@ -890,74 +901,3 @@ $(document).ready(function() {
     OnChange();
 });
 
-
-/*
-var WarSim = {};
-
-$('[data-name=test] input').each(function(index, element) {
- 
-    var el = $(element);
-    WarSim[el.attr('name')] = el.val();
-
-});
-*/
-/*
-    Traits:                     
-        Apex Predator (sharkin)
-        Armored (tortoise)
-        Brute (orc)
-        Cannibal (Mantis)
-        Cautious (animal)
-        Claws (scorpid)
-        Diverse (human)
-        Fiery (balorg)
-        Hivemind (antid)
-        Hyper (cacti)
-        Parasite (sporgar)
-        Pathetic (imp)
-        Puny (gnome)
-        Rage (planet)
-        Scales (reptile)
-        Slow (tortoise)
-    Civ Params:
-        Boot camps              entry
-        VR Training             checkbox
-        Weapon tech level       combobox
-        Armor tech level        combobox
-        Tactical gene level     entry
-        Fanatical temples       entry
-        Dark energy (if evil universe)  entry
-    Hell Setup:
-        Patrols                 entry
-        Patrol size             entry
-        Fortress reserves       entry
-        Homeworld reserves      entry
-        Attractors              entry
-        Predator Drones         entry
-        War Droids              entry
-        -Turrets                entry
-        -Turret tech level      combobox
-        -Surveyors              entry
-    Sim Options:
-        Initial threat          entry
-        Sim hours               entry
-        Demon surges            checkbox
-        -Sieges
-        
-    Results:
-        Soul gems total
-        Soul gems per hour
-        Average demons (displayed)
-        Average demons (pre-influx)
-        Soldier death rate
-        Reserves minimum
-        Reserves average
-        Patrols remaining
-        -Avg living surveyors
-        -Walls minimum
-    Immediate UI feedback:
-        Patrol rating (with/without droids)
-        Soldier recruit time
-        -Fortress defense rating
-        
-*/

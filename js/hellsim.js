@@ -760,7 +760,7 @@ function TimeStr(sim) {
 function GetParams() {
     var params = {};
 
-    $('.param').each(function(index, element) {
+    $('.hell-sim-param').each(function(index, element) {
         var el = $(element);
         var id = el.attr('id');
         if (el.attr('type') == "checkbox") {

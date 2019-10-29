@@ -2,6 +2,45 @@ body {
     padding-left: 20px;
     padding-right: 20px;
     padding-top: 10px;
+	background-color: #383838;
+	color: #fffcf7;
+}
+
+a {
+	color: #dc5c35;
+}
+
+a:hover {
+	color: #c34822;
+	text-decoration: none;
+}
+
+.btn {
+	background-color: #dc5c35;
+	border-color: #652b19;
+}
+
+.btn:hover {
+	background-color: #ad401f;
+	border-color: #652b19;
+}
+
+.btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show>.btn-primary.dropdown-toggle {
+	background-color: #a53d1d;
+	border-color: #5e2817;
+}
+
+.btn-primary.focus, .btn-primary:focus {
+	box-shadow: 0 0 0 0.2rem rgba(220, 92, 53, .25);
+}
+
+.btn-primary:not(:disabled):not(.disabled).active:focus, .btn-primary:not(:disabled):not(.disabled):active:focus, .show>.btn-primary.dropdown-toggle:focus {
+	box-shadow: 0 0 0 0.2rem rgba(220, 92, 53, .25);
+}
+
+.form-control:focus {
+	border-color: #dc5c35;
+	box-shadow: 0 0 0 0.2rem rgba(220, 92, 53, .25);
 }
 
 .form-check-input {
@@ -11,4 +50,5 @@ body {
 
 #result {
 	font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+	background-color: #ffffff;
 }

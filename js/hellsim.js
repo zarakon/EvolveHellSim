@@ -321,6 +321,7 @@ function BloodWar(params, sim, stats) {
             while (demons > 0 && sim.walls > 0) {
                 let kills = Math.round(Rand(1, defense+1));
                 demons -= Math.min(kills, demons);
+                sim.threat -= Math.min(kills, sim.threat);
                 if (demons > 0) {
                     sim.walls--;
                     if (sim.walls == 0) {

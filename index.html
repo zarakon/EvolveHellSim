@@ -300,9 +300,28 @@
             <option value=true>Verbose</option>
           </select>
         </div>-->
-        <div class="col">
-          <input class="form-check-input hell-sim-param" type="checkbox" id="verbose">
+        <div class="col-auto">
+          <b>Outputs:</b>
+        </div>
+        <div class="col" hidden>
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="verbose">
           <label class="form-check-label" for="verbose">Verbose Output (recommended only for short sims)</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="printSieges" checked>
+          <label class="form-check-label" for="printSieges">Sieges</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="printSurges" checked>
+          <label class="form-check-label" for="printSurges">Surges</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="printTerrorists" checked>
+          <label class="form-check-label" for="printTerrorists">Terrorists</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="printLostPatrols" checked>
+          <label class="form-check-label" for="printLostPatrols">Lost Patrols</label>
         </div>
       </div>
     </div>

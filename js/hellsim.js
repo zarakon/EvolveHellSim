@@ -327,9 +327,11 @@ function BloodWar(params, sim, stats) {
             let demons = Math.round(sim.threat / 2);
             let defense = FortressRating(params, sim);
      
-            LogResult(stats, TimeStr(sim) + " - " +
-                "Siege -- Demons " + demons +
-                ",  Fortress rating " + defense);
+            if (params.printSieges) {
+                LogResult(stats, TimeStr(sim) + " - " +
+                    "Siege -- Demons " + demons +
+                    ",  Fortress rating " + defense);
+            }
 
             defense = Math.max(1, defense / 35);
             
@@ -346,7 +348,9 @@ function BloodWar(params, sim, stats) {
                     }
                 }
             }
-            LogResult(stats, ",  Walls " + sim.walls + "\n");
+            if (params.printSieges) {
+                LogResult(stats, ",  Walls " + sim.walls + "\n");
+            }
             
             if (sim.walls == 0) {
                 LogResult(stats, "!!! Walls fell at " + TimeStr(sim) + " !!!\n");
@@ -408,7 +412,9 @@ function Events(params, sim, stats) {
                 let surge = Rand(2500, 5000);
                 sim.threat += surge;
                 stats.surges++;
-                LogResult(stats, TimeStr(sim) + " - Demon Surge Event!  " + surge + " new demons, new threat total " + sim.threat + "\n");
+                if (params.printSurges) {
+                    LogResult(stats, TimeStr(sim) + " - Demon Surge Event!  " + surge + " new demons, new threat total " + sim.threat + "\n");
+                }
             }
         } else if (event == 1) {
             /* Terrorist attack or enemy raid.  Equivalent for our purposes here */
@@ -422,8 +428,9 @@ function Events(params, sim, stats) {
                 if (sim.wounded > sim.soldiers) {
                     sim.wounded = sim.soldiers;
                 }
-
-                LogResult(stats, TimeStr(sim) + " - Terrorist attack: " + wounded + " wounded, " + killed + " killed.\n");
+                if (params.printTerrorists) {
+                    LogResult(stats, TimeStr(sim) + " - Terrorist attack: " + wounded + " wounded, " + killed + " killed.\n");
+                }
             }
         } /* else, irrelevant event */
         /* Reset event odds */
@@ -543,7 +550,9 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
     /* If all reserves are gone, reduce the number of patrols.  This is permanent. */
     if (sim.hellSoldiers < sim.patrols * params.patrolSize) {
         sim.patrols = Math.floor(sim.hellSoldiers / params.patrolSize);
-        LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
+        if (params.printLostPatrols) {
+            LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
+        }
         if (sim.patrols == 0) {
             LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n");
         }

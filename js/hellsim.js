@@ -5,29 +5,10 @@ function Simulate() {
     var ticks;
     const ticks_per_bloodwar = 20;
     
-    var sim = {
-        tick: 0,
-        ticks: 0,
-        tickLength: 250,
-        threat: params.threat,
-        patrols: params.patrols,
-        soldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
-        maxSoldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
-        hellSoldiers: params.patrols * params.patrolSize + params.defenders,
-        maxHellSoldiers: params.patrols * params.patrolSize + params.defenders,
-        wounded: 0,
-        trainingProgress: 0,
-        surveyors: params.surveyors,
-        carRepair: 0,
-        siegeOdds: 999,
-        walls: 100,
-        wallRepair: 0,
-        pity: 0,
-        eventOdds: 999,
-        outputStr: "",
-    };
-    
     var stats = {
+        outputStr: "",
+        ticks: 0,
+        tickLength: 0,
         soulGems: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
@@ -51,125 +32,161 @@ function Simulate() {
         minWalls: 100,
         totalSurveyors: 0,
         minSurveyors: params.surveyors,
+        wallFails: 0,
+        wallFailTicks: 0,
+        patrolFails: 0,
+        patrolFailTicks: 0,
     };
     
-    sim.tickLength = 250;
+    stats.tickLength = 250;
     if (params.hyper) {
-        sim.tickLength *= 0.95;
+        stats.tickLength *= 0.95;
     }
     if (params.slow) {
-        sim.tickLength *= 1.1;
+        stats.tickLength *= 1.1;
     }
     
-    sim.ticks = params.hours * 3600 * 1000 / sim.tickLength;
+    for (var simNum = 1; simNum <= params.sims; simNum++) {
 
-    if (params.verbose) {
-        for (var item in params) {
-            let str = "".concat(item, " - ", params[item], "\n");
-            LogResult(sim, str);
+        LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
+
+        var sim = {
+            tick: 0,
+            ticks: params.hours * 3600 * 1000 / stats.tickLength,
+            tickLength: stats.tickLength,
+            threat: params.threat,
+            patrols: params.patrols,
+            soldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
+            maxSoldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
+            hellSoldiers: params.patrols * params.patrolSize + params.defenders,
+            maxHellSoldiers: params.patrols * params.patrolSize + params.defenders,
+            wounded: 0,
+            trainingProgress: 0,
+            surveyors: params.surveyors,
+            carRepair: 0,
+            siegeOdds: 999,
+            walls: 100,
+            wallRepair: 0,
+            pity: 0,
+            eventOdds: 999,
+        };
+        
+
+        while (sim.tick < sim.ticks) {
+            if (sim.tick % ticks_per_bloodwar == 0) {
+                /* Fight demons */
+                BloodWar(params, sim, stats);
+                
+                /* End the sim if all patrols are dead or the walls fell */
+                if (sim.patrols == 0) {
+                    stats.patrolFails++;
+                    stats.patrolFailTicks += sim.tick;
+                    break;
+                } else if (sim.walls == 0) {
+                    stats.wallFails++;
+                    stats.wallFailTicks += sim.tick;
+                    break;
+                }
+                
+                if (sim.wounded > 0) {
+                    HealSoldiers(params, sim, stats);
+                }
+                
+                /* Random events, which could mean a demon surge influx */
+                Events(params, sim, stats);
+            }
+            
+            if (sim.soldiers < sim.maxSoldiers) {
+                TrainSoldiers(params, sim, stats);
+            }
+            
+            stats.totalSurveyors += sim.surveyors;
+            stats.minSurveyors = Math.min(stats.minSurveyors, sim.surveyors);
+            if (sim.surveyors < params.surveyors) {
+                RepairSurveyors(params, sim, stats);
+            }
+            
+            /* Repair walls */
+            if (sim.walls < 100) {
+                sim.wallRepair++;
+                if (sim.wallRepair >= 200) {
+                    sim.wallRepair = 0;
+                    sim.walls++;
+                }
+            }
+            
+            sim.tick++;
+            stats.ticks++;
+        }
+        if (sim.tick == sim.ticks) {
+            LogResult(stats, "Survived\n");
         }
     }
     
-    //LogResult(sim, ''.concat("tickLength ", sim.tickLength, "ms  ticks ", sim.ticks, "  bloodwars ", sim.ticks/20, "\n"));
-
-
-    while (sim.tick < sim.ticks) {
-        if (sim.tick % ticks_per_bloodwar == 0) {
-            /* Fight demons */
-            BloodWar(params, sim, stats);
-            
-            /* End the sim if all patrols are dead or the walls fell */
-            if (sim.patrols == 0 || sim.walls == 0) {
-                break;
-            }
-            
-            if (sim.wounded > 0) {
-                HealSoldiers(params, sim, stats);
-            }
-            
-            /* Random events, which could mean a demon surge influx */
-            Events(params, sim, stats);
-        }
-        
-        if (sim.soldiers < sim.maxSoldiers) {
-            TrainSoldiers(params, sim, stats);
-        }
-        
-        stats.totalSurveyors += sim.surveyors;
-        stats.minSurveyors = Math.min(stats.minSurveyors, sim.surveyors);
-        if (sim.surveyors < params.surveyors) {
-            RepairSurveyors(params, sim, stats);
-        }
-        
-        /* Repair walls */
-        if (sim.walls < 100) {
-            sim.wallRepair++;
-            if (sim.wallRepair >= 200) {
-                sim.wallRepair = 0;
-                sim.walls++;
-            }
-        }
-        
-        sim.tick++;
-    }
+    let ticksPerHour = stats.tickLength / 1000 / 3600;
+    let hours = (stats.ticks * stats.tickLength / 1000) / 3600;
     
-    let hours = (sim.tick * sim.tickLength / 1000) / 3600;
-    
-    LogResult(sim, "\n -- Results --\n");
-    LogResult(sim, "Blood wars:  " + stats.bloodWars + "\n");
-    LogResult(sim, "Soul gems:   " + stats.soulGems +
+    LogResult(stats, "\n -- Results --\n");
+    LogResult(stats, "Sims:  " + params.sims +
+            ",  wall failures: " + stats.wallFails + 
+            (stats.wallFails ? " (avg " + (stats.wallFailTicks * ticksPerHour / stats.wallFails).toFixed(1) + " hrs)" : "") +
+            ",  patrol failures: " + stats.patrolFails +
+            (stats.patrolFails ? " (avg " + (stats.patrolFailTicks * ticksPerHour / stats.patrolFails).toFixed(1) + " hrs)" : "") +
+            "\n");
+    LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
+    LogResult(stats, "Soul gems:   " + stats.soulGems +
             ",  per hour: " + (stats.soulGems / hours).toFixed(3) +
             "\n");
-    LogResult(sim, "Encounters:  " + stats.patrolEncounters +
+    LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.patrolEncounters / stats.bloodWars).toFixed(3) +
             ",  skipped: " + (stats.skippedEncounters / (stats.skippedEncounters + stats.patrolEncounters) * 100).toFixed(2) + "%" +
             "\n");
-    LogResult(sim, "Ambushes:    " + stats.ambushes +
+    LogResult(stats, "Ambushes:    " + stats.ambushes +
             ",  per hour: " + (stats.ambushes / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.ambushes / stats.bloodWars).toFixed(3) +
             ",  per encounter: " + (stats.ambushes / stats.patrolEncounters).toFixed(3) +
             "\n");
-    LogResult(sim, "Surges:      " + stats.surges +
+    LogResult(stats, "Surges:      " + stats.surges +
             ",  per hour: " + (stats.surges / hours).toFixed(3) +
             "\n");
-    LogResult(sim, "Sieges:      " + stats.sieges +
+    LogResult(stats, "Sieges:      " + stats.sieges +
             ",  per hour: " + (stats.sieges / hours).toFixed(3) +
             "\n");
-    LogResult(sim, "Pre-fight Threat   Avg: " + (stats.totalPreFightThreat / stats.bloodWars).toFixed(0) + 
+    LogResult(stats, "Pre-fight Threat   Avg: " + (stats.totalPreFightThreat / stats.bloodWars).toFixed(0) + 
             ",  min: " + stats.minPreFightThreat +
             ",  max: " + stats.maxPreFightThreat +
             "\n");
-    LogResult(sim, "Post-fight Threat  Avg: " + (stats.totalPostFightThreat / stats.bloodWars).toFixed(0) + 
+    LogResult(stats, "Post-fight Threat  Avg: " + (stats.totalPostFightThreat / stats.bloodWars).toFixed(0) + 
             ",  min: " + stats.minPostFightThreat +
             ",  max: " + stats.maxPostFightThreat +
             "\n");
-    LogResult(sim, "Soldiers trained: " + stats.soldiersTrained +
+    LogResult(stats, "Soldiers trained: " + stats.soldiersTrained +
             ",  per hour: " + (stats.soldiersTrained / hours).toFixed(1) +
             "\n");
-    LogResult(sim, "Soldiers killed: " + stats.soldiersKilled +
+    LogResult(stats, "Soldiers killed: " + stats.soldiersKilled +
             ",  per hour: " + (stats.soldiersKilled / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
-    LogResult(sim, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
+    LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
             ",  max " + stats.maxWounded + " of " + sim.maxSoldiers +
             "\n");
-    LogResult(sim, "Surveyors avg: " + (stats.totalSurveyors / sim.tick).toFixed(1) +
+    LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / sim.tick).toFixed(1) +
             " (" + Math.round((stats.totalSurveyors / sim.tick) / params.surveyors * 100) + "%)" +
             ",  min " + stats.minSurveyors + " of " + params.surveyors +
             "\n");
-    LogResult(sim, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
+    LogResult(stats, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
             ",  min " + stats.minWalls +
             "\n");
-    LogResult(sim, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 
+    LogResult(stats, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 
             ",  Garrison: " + (sim.soldiers - sim.hellSoldiers) + 
             ",  Walls: " + sim.walls + 
             "\n");
-    LogResult(sim, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
+    LogResult(stats, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
     
     $('#result')[0].scrollIntoView(true);
-    $('#result')[0].value = sim.outputStr;
+    $('#result')[0].value = stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);
 }
 
@@ -310,7 +327,7 @@ function BloodWar(params, sim, stats) {
             let demons = Math.round(sim.threat / 2);
             let defense = FortressRating(params, sim);
      
-            LogResult(sim, TimeStr(sim) + " - " +
+            LogResult(stats, TimeStr(sim) + " - " +
                 "Siege -- Demons " + demons +
                 ",  Fortress rating " + defense);
 
@@ -329,10 +346,10 @@ function BloodWar(params, sim, stats) {
                     }
                 }
             }
-            LogResult(sim, ",  Walls " + sim.walls + "\n");
+            LogResult(stats, ",  Walls " + sim.walls + "\n");
             
             if (sim.walls == 0) {
-                LogResult(sim, "!!! Walls fell at " + TimeStr(sim) + " !!!\n");
+                LogResult(stats, "!!! Walls fell at " + TimeStr(sim) + " !!!\n");
             }
             
             sim.siegeOdds = 999;
@@ -391,7 +408,7 @@ function Events(params, sim, stats) {
                 let surge = Rand(2500, 5000);
                 sim.threat += surge;
                 stats.surges++;
-                LogResult(sim, TimeStr(sim) + " - Demon Surge Event!  " + surge + " new demons, new threat total " + sim.threat + "\n");
+                LogResult(stats, TimeStr(sim) + " - Demon Surge Event!  " + surge + " new demons, new threat total " + sim.threat + "\n");
             }
         } else if (event == 1) {
             /* Terrorist attack or enemy raid.  Equivalent for our purposes here */
@@ -406,7 +423,7 @@ function Events(params, sim, stats) {
                     sim.wounded = sim.soldiers;
                 }
 
-                LogResult(sim, TimeStr(sim) + " - Terrorist attack: " + wounded + " wounded, " + killed + " killed.\n");
+                LogResult(stats, TimeStr(sim) + " - Terrorist attack: " + wounded + " wounded, " + killed + " killed.\n");
             }
         } /* else, irrelevant event */
         /* Reset event odds */
@@ -526,9 +543,9 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
     /* If all reserves are gone, reduce the number of patrols.  This is permanent. */
     if (sim.hellSoldiers < sim.patrols * params.patrolSize) {
         sim.patrols = Math.floor(sim.hellSoldiers / params.patrolSize);
-        LogResult(sim, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
+        LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
         if (sim.patrols == 0) {
-            LogResult(sim, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n");
+            LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n");
         }
     }
     
@@ -713,20 +730,19 @@ function OnChange() {
     window.localStorage.setItem('hellSimParams', JSON.stringify(params));
 }
 
-function LogResult(sim, str) {
-    if (sim) {
-        sim.outputStr += str;
+function LogResult(stats, str) {
+    if (stats) {
+        stats.outputStr += str;
     } else {
         let result = $('#result');
-        //result.val(result.val().concat(str));
         result[0].value += str;
         result.scrollTop(result[0].scrollHeight);
     }
 }
 
-function LogVerbose(sim, params, str) {
+function LogVerbose(stats, params, str) {
     if (!params.verbose) return;
-    LogResult(sim, str);
+    LogResult(stats, str);
 }
 
 function TimeStr(sim) {

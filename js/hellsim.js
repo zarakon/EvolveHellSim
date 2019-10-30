@@ -1,14 +1,14 @@
 function Simulate() {
+    $('#result')[0].scrollIntoView(true);
     $('#result').val("");
 
     var params = GetParams();
-    var ticks;
-    const ticks_per_bloodwar = 20;
     
     var stats = {
         outputStr: "",
         ticks: 0,
         tickLength: 0,
+        simsDone: 0,
         soulGems: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
@@ -46,11 +46,23 @@ function Simulate() {
         stats.tickLength *= 1.1;
     }
     
-    for (var simNum = 1; simNum <= params.sims; simNum++) {
+    SimScheduler(params, false, stats);
+}
 
-        LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
+function SimScheduler(params, sim, stats) {
+    if (stats.simsDone < params.sims) {
+        setTimeout(function() {
+            SimRun(params, sim, stats);
+        }, 0);
+    } else {
+        SimResults(params, stats);
+    }
+}
 
-        var sim = {
+function SimRun(params, sim, stats) {
+    const ticks_per_bloodwar = 20;
+    if (!sim || sim.done) {
+        sim = {
             tick: 0,
             ticks: params.hours * 3600 * 1000 / stats.tickLength,
             tickLength: stats.tickLength,
@@ -69,65 +81,94 @@ function Simulate() {
             wallRepair: 0,
             pity: 0,
             eventOdds: 999,
+            done: false,
         };
-        
-
-        while (sim.tick < sim.ticks) {
-            if (sim.tick % ticks_per_bloodwar == 0) {
-                /* Fight demons */
-                BloodWar(params, sim, stats);
-                
-                /* End the sim if all patrols are dead or the walls fell */
-                if (sim.patrols == 0) {
-                    stats.patrolFails++;
-                    stats.patrolFailTicks += sim.tick;
-                    break;
-                } else if (sim.walls == 0) {
-                    stats.wallFails++;
-                    stats.wallFailTicks += sim.tick;
-                    break;
-                }
-                
-                if (sim.wounded > 0) {
-                    HealSoldiers(params, sim, stats);
-                }
-                
-                /* Random events, which could mean a demon surge influx */
-                Events(params, sim, stats);
-            }
-            
-            if (sim.soldiers < sim.maxSoldiers) {
-                TrainSoldiers(params, sim, stats);
-            }
-            
-            stats.totalSurveyors += sim.surveyors;
-            stats.minSurveyors = Math.min(stats.minSurveyors, sim.surveyors);
-            if (sim.surveyors < params.surveyors) {
-                RepairSurveyors(params, sim, stats);
-            }
-            
-            /* Repair walls */
-            if (sim.walls < 100) {
-                sim.wallRepair++;
-                if (sim.wallRepair >= 200) {
-                    sim.wallRepair = 0;
-                    sim.walls++;
-                }
-            }
-            
-            sim.tick++;
-            stats.ticks++;
-        }
-        if (sim.tick == sim.ticks) {
-            LogResult(stats, "Survived\n");
-        }
+        let simNum = stats.simsDone + 1;
+        LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
     }
     
+    var startTime = Date.now();
+    
+    while (sim.tick < sim.ticks) {
+        if (sim.tick % ticks_per_bloodwar == 0) {
+            /* Fight demons */
+            BloodWar(params, sim, stats);
+            
+            /* End the sim if all patrols are dead or the walls fell */
+            if (sim.patrols == 0) {
+                stats.patrolFails++;
+                stats.patrolFailTicks += sim.tick;
+                break;
+            } else if (sim.walls == 0) {
+                stats.wallFails++;
+                stats.wallFailTicks += sim.tick;
+                break;
+            }
+            
+            if (sim.wounded > 0) {
+                HealSoldiers(params, sim, stats);
+            }
+            
+            /* Random events, which could mean a demon surge influx */
+            Events(params, sim, stats);
+        }
+        
+        if (sim.soldiers < sim.maxSoldiers) {
+            TrainSoldiers(params, sim, stats);
+        }
+        
+        stats.totalSurveyors += sim.surveyors;
+        stats.minSurveyors = Math.min(stats.minSurveyors, sim.surveyors);
+        if (sim.surveyors < params.surveyors) {
+            RepairSurveyors(params, sim, stats);
+        }
+        
+        /* Repair walls */
+        if (sim.walls < 100) {
+            sim.wallRepair++;
+            if (sim.wallRepair >= 200) {
+                sim.wallRepair = 0;
+                sim.walls++;
+            }
+        }
+        
+        sim.tick++;
+        stats.ticks++;
+        
+        let msElapsed = Date.now() - startTime;
+        if (msElapsed > 50) {
+            /* Yield CPU */
+            SimScheduler(params, sim, stats);
+            return;
+        }
+    }
+    if (sim.tick == sim.ticks) {
+        LogResult(stats, "Survived!\n");
+        LogResult(stats, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 
+            ",  Garrison: " + (sim.soldiers - sim.hellSoldiers) + 
+            ",  Walls: " + sim.walls + 
+            "\n");
+        LogResult(stats, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
+        LogResult(stats, "\n");
+    }
+    
+    sim.done = true;
+    stats.simsDone++;
+    
+    $('#result')[0].scrollIntoView(true);
+    $('#result')[0].value = stats.outputStr;
+    $('#result').scrollTop($('#result')[0].scrollHeight);
+
+    SimScheduler(params, sim, stats);
+}
+
+function SimResults(params, stats) {
     let ticksPerHour = stats.tickLength / 1000 / 3600;
     let hours = (stats.ticks * stats.tickLength / 1000) / 3600;
+    let maxSoldiers = params.patrols * params.patrolSize + params.defenders + params.garrison;
     
-    LogResult(stats, "\n -- Results --\n");
-    LogResult(stats, "Sims:  " + params.sims +
+    LogResult(stats, " -- Results --\n");
+    LogResult(stats, "Sims:  " + stats.simsDone +
             ",  wall failures: " + stats.wallFails + 
             (stats.wallFails ? " (avg " + (stats.wallFailTicks * ticksPerHour / stats.wallFails).toFixed(1) + " hrs)" : "") +
             ",  patrol failures: " + stats.patrolFails +
@@ -170,20 +211,15 @@ function Simulate() {
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
     LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
-            ",  max " + stats.maxWounded + " of " + sim.maxSoldiers +
+            ",  max " + stats.maxWounded + " of " + maxSoldiers +
             "\n");
-    LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / sim.tick).toFixed(1) +
-            " (" + Math.round((stats.totalSurveyors / sim.tick) / params.surveyors * 100) + "%)" +
+    LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / stats.ticks).toFixed(1) +
+            " (" + Math.round((stats.totalSurveyors / stats.ticks) / params.surveyors * 100) + "%)" +
             ",  min " + stats.minSurveyors + " of " + params.surveyors +
             "\n");
     LogResult(stats, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
             ",  min " + stats.minWalls +
             "\n");
-    LogResult(stats, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 
-            ",  Garrison: " + (sim.soldiers - sim.hellSoldiers) + 
-            ",  Walls: " + sim.walls + 
-            "\n");
-    LogResult(stats, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
     
     $('#result')[0].scrollIntoView(true);
     $('#result')[0].value = stats.outputStr;
@@ -902,7 +938,7 @@ $(document).ready(function() {
     
     $('#paramsForm').submit(function(event) {
         event.preventDefault();
-        setTimeout(Simulate, 10);
+        Simulate();
     });
     
     $('#importForm').submit(function(event) {

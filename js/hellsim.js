@@ -66,15 +66,17 @@ function Simulate() {
 function SimScheduler(params, sim, stats) {
     if (gStop) {
         SimCancel(params, stats);
-        return;
-    }
-    if (stats.simsDone < params.sims) {
+    } else if (stats.simsDone < params.sims) {
         setTimeout(function() {
             SimRun(params, sim, stats);
         }, 0);
     } else {
         SimResults(params, stats);
     }
+    let totalTicks = params.sims * params.hours * 3600 * 1000 / stats.tickLength;
+    let progressPct = (stats.ticks / totalTicks * 100).toFixed(2);
+    $('#simProgress').attr("aria-valuenow",Math.floor(progressPct));
+    $('#simProgress').css("width", progressPct + "%");
 }
 
 function SimRun(params, sim, stats) {
@@ -178,7 +180,6 @@ function SimRun(params, sim, stats) {
     sim.done = true;
     stats.simsDone++;
     
-    $('#result')[0].scrollIntoView(true);
     $('#result')[0].value = stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);
 

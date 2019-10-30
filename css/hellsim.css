@@ -53,6 +53,17 @@ a:hover {
 	position: static;
 }
 
+.progress {
+	background-color: #3d2e29;
+}
+
+.progress-bar {
+	background-color: #dc5c35;
+    -webkit-transition: none !important;
+    transition: none !important;
+}
+
+
 #result {
 	font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 	background-color: #ffffff;

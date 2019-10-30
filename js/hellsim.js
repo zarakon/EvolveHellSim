@@ -1,7 +1,6 @@
 var gStop = false;
 
 function Simulate() {
-    $('#result')[0].scrollIntoView(true);
     $('#result').val("");
 
     console.log("Simulate " + Date.now());
@@ -73,8 +72,15 @@ function SimScheduler(params, sim, stats) {
     } else {
         SimResults(params, stats);
     }
-    let totalTicks = params.sims * params.hours * 3600 * 1000 / stats.tickLength;
-    let progressPct = (stats.ticks / totalTicks * 100).toFixed(2);
+    UpdateProgressBar(params, sim, stats);
+}
+
+function UpdateProgressBar(params, sim, stats) {
+    let progressPct = stats.simsDone / params.sims * 100.0;
+    if (sim && !sim.done) {
+        let partialProgress = (sim.tick / sim.ticks) / params.sims * 100.0;
+        progressPct += partialProgress;
+    }
     $('#simProgress').attr("aria-valuenow",Math.floor(progressPct));
     $('#simProgress').css("width", progressPct + "%");
 }

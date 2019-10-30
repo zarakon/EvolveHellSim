@@ -1,6 +1,20 @@
+var gStop = false;
+
 function Simulate() {
     $('#result')[0].scrollIntoView(true);
     $('#result').val("");
+
+    console.log("Simulate " + Date.now());
+    
+    /* Change the Simulate button to a Stop button. */
+    let btnWidth = $('#simButton').width();
+    $('#simButton').text("Stop");
+    $('#simButton').width(btnWidth);
+    $('#paramsForm').unbind("submit");
+    $('#paramsForm').submit(function(event) {
+        event.preventDefault();
+        gStop = true;
+    });
 
     var params = GetParams();
     
@@ -50,6 +64,10 @@ function Simulate() {
 }
 
 function SimScheduler(params, sim, stats) {
+    if (gStop) {
+        SimCancel(params, stats);
+        return;
+    }
     if (stats.simsDone < params.sims) {
         setTimeout(function() {
             SimRun(params, sim, stats);
@@ -141,6 +159,11 @@ function SimRun(params, sim, stats) {
             SimScheduler(params, sim, stats);
             return;
         }
+        
+        if (gStop) {
+            SimCancel(params, stats);
+            return;
+        }
     }
     if (sim.tick == sim.ticks) {
         LogResult(stats, "Survived!\n");
@@ -160,6 +183,13 @@ function SimRun(params, sim, stats) {
     $('#result').scrollTop($('#result')[0].scrollHeight);
 
     SimScheduler(params, sim, stats);
+}
+
+function SimCancel(params, stats) {
+    console.log("Canceled " + Date.now());
+    LogResult(stats, "!!! Canceled !!!\n\n");
+    SimResults(params, stats);
+    gStop = false;
 }
 
 function SimResults(params, stats) {
@@ -224,6 +254,19 @@ function SimResults(params, stats) {
     $('#result')[0].scrollIntoView(true);
     $('#result')[0].value = stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);
+
+    /* Restore the Simulate button after locking it briefly, to avoid accidentally
+       starting a new sim if the user attempts to press stop just as it finishes */
+    $('#simButton').text("Simulate");
+    $('#simButton').attr("disabled", true);
+    setTimeout(function() {
+        $('#paramsForm').unbind("submit");
+        $('#paramsForm').submit(function(event) {
+            event.preventDefault();
+            Simulate();
+        });
+        $('#simButton').attr("disabled", false);
+    }, 250);
 }
 
 function BloodWar(params, sim, stats) {

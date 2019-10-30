@@ -30,6 +30,11 @@ a:hover {
 	border-color: #5e2817;
 }
 
+.btn-primary:disabled {
+	background-color: #c46a4f;
+    border-color: #c46a4f;
+}
+
 .btn-primary.focus, .btn-primary:focus {
 	box-shadow: 0 0 0 0.2rem rgba(220, 92, 53, .25);
 }

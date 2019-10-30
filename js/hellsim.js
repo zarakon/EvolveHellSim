@@ -439,7 +439,7 @@ function BloodWar(params, sim, stats) {
             }
             
             if (sim.walls == 0) {
-                LogResult(stats, "!!! Walls fell at " + TimeStr(sim) + " !!!\n");
+                LogResult(stats, "!!! Walls fell at " + TimeStr(sim) + " !!!\n\n");
             }
             
             sim.siegeOdds = 999;
@@ -640,7 +640,7 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
             LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
         }
         if (sim.patrols == 0) {
-            LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n");
+            LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n\n");
         }
     }
     

@@ -791,7 +791,7 @@ function OnChange() {
     } else {
         ratingStr += patrolRating;
     }
-    $('#patrolRating').val(ratingStr);
+    $('#patrolRating').html(ratingStr);
     
     
     fortressRating = FortressRating(params, false);
@@ -800,7 +800,7 @@ function OnChange() {
     } else {
         ratingStr = fortressRating;
     }
-    $('#fortressRating').val(ratingStr);
+    $('#fortressRating').html(ratingStr);
     
     /* Get the training time, then round up to next tick and convert to seconds */
     trainingTime = TrainingTime(params);
@@ -812,7 +812,7 @@ function OnChange() {
         trainingTime *= 1.1;
     }
     let trainingRate = 3600 / trainingTime;
-    $('#trainingRate').val(''.concat(trainingTime.toFixed(2), "sec  ", trainingRate.toFixed(1), "/hour"));
+    $('#trainingRate').html(trainingTime.toFixed(2) + "sec&nbsp;&nbsp;&nbsp;" + trainingRate.toFixed(1) + "/hour");
     
     
     /* Save params to localStorage */

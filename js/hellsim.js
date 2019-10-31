@@ -49,6 +49,9 @@ function Simulate() {
         wallFailTicks: 0,
         patrolFails: 0,
         patrolFailTicks: 0,
+        totalPatrolsSurvived: 0,
+        minPatrolsSurvived: params.patrols,
+        maxPatrolsSurvived: 0,
     };
     
     stats.tickLength = 250;
@@ -121,13 +124,13 @@ function SimRun(params, sim, stats) {
             BloodWar(params, sim, stats);
             
             /* End the sim if all patrols are dead or the walls fell */
-            if (sim.patrols == 0) {
-                stats.patrolFails++;
-                stats.patrolFailTicks += sim.tick;
-                break;
-            } else if (sim.walls == 0) {
+            if (sim.walls == 0) {
                 stats.wallFails++;
                 stats.wallFailTicks += sim.tick;
+                break;
+            } else if (sim.patrols == 0) {
+                stats.patrolFails++;
+                stats.patrolFailTicks += sim.tick;
                 break;
             }
             
@@ -182,6 +185,10 @@ function SimRun(params, sim, stats) {
         LogResult(stats, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
         LogResult(stats, "\n");
     }
+    
+    stats.totalPatrolsSurvived += sim.patrols;
+    stats.minPatrolsSurvived = Math.min(sim.patrols, stats.minPatrolsSurvived);
+    stats.maxPatrolsSurvived = Math.max(sim.patrols, stats.maxPatrolsSurvived);
     
     sim.done = true;
     stats.simsDone++;
@@ -246,6 +253,11 @@ function SimResults(params, stats) {
             ",  per hour: " + (stats.soldiersKilled / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
+            "\n");
+    LogResult(stats, "Patrols survived (of " + params.patrols +
+            ")  avg: " + (stats.totalPatrolsSurvived / stats.simsDone).toFixed(1) +
+            ",  min: " + stats.minPatrolsSurvived +
+            ",  max: " + stats.maxPatrolsSurvived +
             "\n");
     LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
             ",  max " + stats.maxWounded + " of " + maxSoldiers +
@@ -439,6 +451,11 @@ function BloodWar(params, sim, stats) {
             }
             
             if (sim.walls == 0) {
+                sim.soldiers -= sim.patrols * params.patrolSize;
+                sim.soldiers -= sim.hellSoldiers;
+                sim.patrols = 0;
+                sim.hellSoldiers = 0;
+                sim.maxHellSoldiers = 0;
                 LogResult(stats, "!!! Walls fell at " + TimeStr(sim) + " !!!\n\n");
             }
             

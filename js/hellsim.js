@@ -954,7 +954,7 @@ function ConvertSave(save) {
     
     $('#weaponTech')[0].value = save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military'];
     $('#armorTech')[0].value = save.tech['armor'];
-    $('#tactical')[0].value = save.race.minor['tactical'] || 0;
+    $('#tactical')[0].value = save.race['tactical'] || 0;
     $('#temples')[0].value = save.tech['fanaticism'] >= 4 ? save.city.temple.count : 0;
     $('#bootCamps')[0].value = save.city.boot_camp.count;
     $('#vrTraining')[0].value = save.tech['boot_camp'] >= 2 ? true : false;
@@ -966,8 +966,15 @@ function ConvertSave(save) {
     if (save.portal && save.portal.fortress) {
         let patrols = save.portal.fortress.patrols;
         let patrolSize = save.portal.fortress.patrol_size;
-        let defenders = save.portal.fortress.assigned - (patrols * patrolSize);
-        let garrison = save.civic.garrison.max - save.portal.fortress.assigned;
+        var defenders;
+        var garrison;
+        if (save.portal.fortress.assigned) {
+            defenders = save.portal.fortress.assigned - (patrols * patrolSize);
+            garrison = save.civic.garrison.max - save.portal.fortress.assigned;
+        } else {
+            defenders = 0;
+            garrison = save.civic.garrison.max;
+        }
         $('#patrols')[0].value = patrols;
         $('#patrolSize')[0].value = patrolSize;
         $('#defenders')[0].value = defenders;

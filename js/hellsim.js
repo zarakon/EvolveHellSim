@@ -93,7 +93,7 @@ function SimRun(params, sim, stats) {
     if (!sim || sim.done) {
         sim = {
             tick: 0,
-            ticks: params.hours * 3600 * 1000 / stats.tickLength,
+            ticks: Math.round(params.hours * 3600 * 1000 / stats.tickLength),
             tickLength: stats.tickLength,
             threat: params.threat,
             patrols: params.patrols,
@@ -176,7 +176,7 @@ function SimRun(params, sim, stats) {
             return;
         }
     }
-    if (sim.tick == sim.ticks) {
+    if (sim.tick >= sim.ticks) {
         LogResult(stats, "Survived!\n");
         LogResult(stats, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 
             ",  Garrison: " + (sim.soldiers - sim.hellSoldiers) + 

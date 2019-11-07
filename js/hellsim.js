@@ -52,6 +52,9 @@ function Simulate() {
         totalPatrolsSurvived: 0,
         minPatrolsSurvived: params.patrols,
         maxPatrolsSurvived: 0,
+        totalPity: 0,
+        totalPityPerGem: 0,
+        maxPity: 0,
     };
     
     stats.tickLength = 250;
@@ -222,6 +225,10 @@ function SimResults(params, stats) {
     LogResult(stats, "Soul gems:   " + stats.soulGems +
             ",  per hour: " + (stats.soulGems / hours).toFixed(3) +
             "\n");
+    LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
+            ",  max: " + stats.maxPity +
+            ", avg per gem: " + (stats.totalPityPerGem / stats.soulGems).toFixed(0) +
+            "\n");
     LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.patrolEncounters / stats.bloodWars).toFixed(3) +
@@ -254,13 +261,13 @@ function SimResults(params, stats) {
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
+    LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
+            ",  max " + stats.maxWounded + " of " + maxSoldiers +
+            "\n");
     LogResult(stats, "Patrols survived (of " + params.patrols +
             ")  avg: " + (stats.totalPatrolsSurvived / stats.simsDone).toFixed(1) +
             ",  min: " + stats.minPatrolsSurvived +
             ",  max: " + stats.maxPatrolsSurvived +
-            "\n");
-    LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
-            ",  max " + stats.maxWounded + " of " + maxSoldiers +
             "\n");
     LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / stats.ticks).toFixed(1) +
             " (" + Math.round((stats.totalSurveyors / stats.ticks) / params.surveyors * 100) + "%)" +
@@ -303,6 +310,9 @@ function BloodWar(params, sim, stats) {
     if (sim.wounded > stats.maxWounded) {
         stats.maxWounded = sim.wounded;
     }
+    
+    stats.totalPity += sim.pity;
+    stats.maxPity = Math.max(stats.maxPity, sim.pity);
     
     LogVerbose(sim, params,
         "T " + sim.tick + 
@@ -385,6 +395,7 @@ function BloodWar(params, sim, stats) {
                 /* Chance to find a soul gem */
                 if (Rand(0, gemOdds) == 0) {
                     stats.soulGems++;
+                    stats.totalPityPerGem += sim.pity;
                     sim.pity = 0;
                 } else {
                     needPity = true;

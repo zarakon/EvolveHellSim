@@ -35,6 +35,7 @@ function Simulate() {
         ambushes: 0,
         soldiersTrained: 0,
         soldiersKilled: 0,
+        soldiersRevived: 0,
         totalWounded: 0,
         maxWounded: 0,
         ambushDeaths: 0,
@@ -253,13 +254,19 @@ function SimResults(params, stats) {
             ",  min: " + stats.minPostFightThreat +
             ",  max: " + stats.maxPostFightThreat +
             "\n");
-    LogResult(stats, "Soldiers trained: " + stats.soldiersTrained +
-            ",  per hour: " + (stats.soldiersTrained / hours).toFixed(1) +
-            "\n");
     LogResult(stats, "Soldiers killed: " + stats.soldiersKilled +
             ",  per hour: " + (stats.soldiersKilled / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
+            "\n");
+    if (params.revive) {
+        LogResult(stats, "Soldiers revived: " + stats.soldiersRevived +
+                ",  per hour: " + (stats.soldiersRevived / hours).toFixed(1) +
+                ",  per bloodwar: " + (stats.soldiersRevived / stats.bloodWars).toFixed(3) +
+                "\n");
+    }
+    LogResult(stats, "Soldiers trained: " + stats.soldiersTrained +
+            ",  per hour: " + (stats.soldiersTrained / hours).toFixed(1) +
             "\n");
     LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
             ",  max " + stats.maxWounded + " of " + maxSoldiers +
@@ -347,10 +354,26 @@ function BloodWar(params, sim, stats) {
     /* Patrols */
     let soldiersKilled = 0;
     let needPity = false;
+    let patrolWounds = 0;
+    let extraWounds = 0;
+    if (sim.wounded > 0) {
+        /* Figure out how many wounds to assign to patrols */
+        let defenders = sim.hellSoldiers - (sim.patrols * params.patrolSize);
+        let garrison = sim.soldiers - sim.hellSoldiers;
+        let patrolWoundTotal = sim.wounded - garrison - defenders;
+        if (patrolWoundTotal > 0) {
+            patrolWounds = Math.floor(patrolWoundTotal / sim.patrols);
+            extraWounds = patrolWoundTotal % sim.patrols;
+        }
+    }
     for (let i = 0; i < sim.patrols; i++) {
         /* Check for encounter
            Less demons -> lower chance of encounter
          */
+        let wounded = patrolWounds;
+        if (i < extraWounds) {
+            wounded++;
+        }
         if (Rand(0, sim.threat) >= Rand(0, 999)) {
             /* Encounter */
             stats.patrolEncounters++;
@@ -361,13 +384,13 @@ function BloodWar(params, sim, stats) {
                 patrolSize++;
             }
             
-            let patrolRating = ArmyRating(params, sim, patrolSize);
+            let patrolRating = ArmyRating(params, sim, patrolSize, wounded);
 
             let minDemons = Math.floor(sim.threat / 50);
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
             
-            let ambushOdds = params.chameleon ? 50 : 30;
+            let ambushOdds = (params.chameleon || params.elusive) ? 50 : 30;
             if (Rand(0, ambushOdds) == 0) {
                 /* Ambush 
                    Patrol armor is ignored, at least one will be killed/injured, and no chance for a soul gem
@@ -407,7 +430,33 @@ function BloodWar(params, sim, stats) {
             stats.skippedEncounters++;
         }
     }
+    
+    if (params.revive) {
+        let reviveMax = soldiersKilled / 3 + 0.25;
+        let revived = Math.round(Math.random() * reviveMax);
+        sim.soldiers += revived;
+        stats.soldiersRevived += revived;
+    }
 
+    if (sim.wounded > sim.soldiers) {
+        sim.wounded = sim.soldiers;
+    }
+    
+    if (sim.soldiers < sim.hellSoldiers) {
+        sim.hellSoldiers = sim.soldiers;
+    }
+    
+    /* If all reserves are gone, reduce the number of patrols.  This is permanent. */
+    if (sim.hellSoldiers < sim.patrols * params.patrolSize) {
+        sim.patrols = Math.floor(sim.hellSoldiers / params.patrolSize);
+        if (params.printLostPatrols) {
+            LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
+        }
+        if (sim.patrols == 0) {
+            LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n\n");
+        }
+    }
+    
     stats.totalPostFightThreat += sim.threat;
     if (sim.threat < stats.minPostFightThreat) {
         stats.minPostFightThreat = sim.threat;
@@ -431,7 +480,7 @@ function BloodWar(params, sim, stats) {
     /* Siege */
     if (params.sieges) {
         sim.siegeOdds--;
-        if (Rand(0, sim.siegeOdds) == 0) {
+        if (sim.siegeOdds <= 900 && Rand(0, sim.siegeOdds) == 0) {
             stats.sieges++;
             let demons = Math.round(sim.threat / 2);
             let defense = FortressRating(params, sim);
@@ -537,6 +586,7 @@ function Events(params, sim, stats) {
                 let wounded = Rand(sim.wounded, sim.soldiers);
                 
                 sim.soldiers -= killed;
+                stats.soldiersKilled += killed;
                 sim.wounded += wounded;
                 
                 if (sim.wounded > sim.soldiers) {
@@ -653,25 +703,6 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
         }
     }
     
-    if (sim.wounded > sim.soldiers) {
-        sim.wounded = sim.soldiers;
-    }
-    
-    if (sim.soldiers < sim.hellSoldiers) {
-        sim.hellSoldiers = sim.soldiers;
-    }
-    
-    /* If all reserves are gone, reduce the number of patrols.  This is permanent. */
-    if (sim.hellSoldiers < sim.patrols * params.patrolSize) {
-        sim.patrols = Math.floor(sim.hellSoldiers / params.patrolSize);
-        if (params.printLostPatrols) {
-            LogResult(stats, TimeStr(sim) + " - Lost patrol. " + sim.patrols + " remaining.  Threat: " + sim.threat + "\n");
-        }
-        if (sim.patrols == 0) {
-            LogResult(stats, "!!! Lost all patrols at " + TimeStr(sim) + " !!!\n\n");
-        }
-    }
-    
     return dead;
 }
 
@@ -695,11 +726,13 @@ function TrainingTime(params) {
     return 1.0/rate;
 }
 
-function ArmyRating(params, sim, size) {
+function ArmyRating(params, sim, size, wound) {
     var rating = size;
     var wounded = 0;
     
-    if (sim) {
+    if (wound) {
+        wounded = wound;
+    } else if (sim) {
         if (size > sim.soldiers - sim.wounded) {
             wounded = size - (sim.soldiers - sim.wounded);
         }
@@ -754,6 +787,10 @@ function ArmyRating(params, sim, size) {
         }
     }
     
+    if (params.autocracy) {
+        rating *= 1.35;
+    }
+    
     rating = Math.floor(rating);
     
     if (params.hivemind) {
@@ -775,13 +812,24 @@ function FortressRating(params, sim) {
     var turretRating;
     var patrols;
     var defenders;
+    var wounded;
     
     if (sim) {
         patrols = sim.patrols;
         defenders = sim.hellSoldiers - (sim.patrols * params.patrolSize);
+        let garrison = sim.soldiers - sim.hellSoldiers;
+        if (sim.wounded > garrison) {
+            wounded = sim.wounded - garrison;
+            if (wounded > defenders) {
+                wounded = defenders;
+            }
+        } else {
+            wounded = 0;
+        }
     } else {
         patrols = params.patrols;
         defenders = params.defenders;
+        wounded = 0;
     }
     
     if (params.droids > patrols) {
@@ -801,7 +849,7 @@ function FortressRating(params, sim) {
             break;
     }
     
-    return ArmyRating(params, sim, defenders) + params.turrets * turretRating;
+    return ArmyRating(params, sim, defenders, wounded) + params.turrets * turretRating;
 }
 
 function OnChange() {
@@ -960,12 +1008,14 @@ function ConvertSave(save) {
     $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#armored')[0].checked = save.race['armored'] ? true : false;
+    $('#autocracy')[0].checked = (save.civic.govern.type == "autocracy");
     $('#brute')[0].checked = save.race['brute'] ? true : false;
     $('#cannibal')[0].checked = save.race['cannibalize'] ? true : false;
     $('#cautious')[0].checked = save.race['cautious'] ? true : false;
     $('#chameleon')[0].checked = save.race['chameleon'] ? true : false;
     $('#claws')[0].checked = save.race['claws'] ? true : false;
     $('#diverse')[0].checked = save.race['diverse'] ? true : false;
+    $('#elusive')[0].checked = save.race['elusive'] ? true : false;
     $('#evil')[0].checked = save.race['evil'] ? true : false;
     $('#fiery')[0].checked = save.race['fiery'] ? true : false;
     $('#hivemind')[0].checked = save.race['hivemind'] ? true : false;
@@ -976,6 +1026,7 @@ function ConvertSave(save) {
     $('#puny')[0].checked = save.race['puny'] ? true : false;
     $('#rage')[0].checked = save.city.ptrait == 'rage' ? true : false;
     $('#regenerative')[0].checked = save.race['regenerative'] ? true : false;
+    $('#revive')[0].checked = save.race['revive'] ? true : false;
     $('#scales')[0].checked = save.race['scales'] ? true : false;
     $('#slaver')[0].checked = save.race['slaver'] ? true : false;
     $('#slow')[0].checked = save.race['slow'] ? true : false;

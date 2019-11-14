@@ -18,7 +18,7 @@
 <body>
   <div class="row">
     <div class="col-auto"><h3>Evolve Hell Simulator</h3></div>
-    <div class="col-auto">By jotun (aka Zarakon)<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v0.6.22</div>
+    <div class="col-auto">By jotun (aka Zarakon)<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v0.7.0.4</div>
     <div class="col-auto">
       <form class="form-inline" id="importForm">
         <input type="textarea" class="form-control mb-2 mr-sm-2" id="saveString" placeholder="Evolve Save String"></input>
@@ -43,15 +43,19 @@
           <label class="form-check-label" for="armored">Armored (Tortoise)</label>
         </div>
         <div class="col">
+          <input class="form-check-input hell-sim-param" type="checkbox" id="autocracy">
+          <label class="form-check-label" for="autocracy">Autocracy (Government)</label>
+        </div>
+        <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="brute">
           <label class="form-check-label" for="brute">Brute (Orc)</label>
         </div>
+      </div>
+      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="cannibal">
           <label class="form-check-label" for="cannibal">Cannibal (Mantis)</label>
         </div>
-      </div>
-      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="cautious">
           <label class="form-check-label" for="cautious">Cautious (Animal)</label>
@@ -68,12 +72,16 @@
           <input class="form-check-input hell-sim-param" type="checkbox" id="diverse">
           <label class="form-check-label" for="diverse">Diverse (Human)</label>
         </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input class="form-check-input hell-sim-param" type="checkbox" id="elusive">
+          <label class="form-check-label" for="elusive">Elusive (???)</label>
+        </div>
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="evil">
           <label class="form-check-label" for="evil">Evil (Demons or Universe)</label>
         </div>
-      </div>
-      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="fiery">
           <label class="form-check-label" for="fiery">Fiery (Balorg)</label>
@@ -86,6 +94,8 @@
           <input class="form-check-input hell-sim-param" type="checkbox" id="hyper">
           <label class="form-check-label" for="hyper">Hyper (Cacti)</label>
         </div>
+      </div>
+      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="kindling">
           <label class="form-check-label" for="kindling">Kindred Kindling (Ent)</label>
@@ -94,8 +104,6 @@
           <input class="form-check-input hell-sim-param" type="checkbox" id="parasite">
           <label class="form-check-label" for="parasite">Parasite (Sporgar)</label>
         </div>
-      </div>
-      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="pathetic">
           <label class="form-check-label" for="pathetic">Pathetic (Imp)</label>
@@ -108,16 +116,20 @@
           <input class="form-check-input hell-sim-param" type="checkbox" id="rage">
           <label class="form-check-label" for="rage">Rage (Planet)</label>
         </div>
+      </div>
+      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="regenerative">
           <label class="form-check-label" for="regenerative">Regenerative (Troll)</label>
         </div>
         <div class="col">
+          <input class="form-check-input hell-sim-param" type="checkbox" id="revive">
+          <label class="form-check-label" for="revive">Revive (Phoenix)</label>
+        </div>
+        <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="scales">
           <label class="form-check-label" for="scales">Scales (Reptiles)</label>
         </div>
-      </div>
-      <div class="row">
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="slaver">
           <label class="form-check-label" for="slaver">Slaver (Balorg)</label>
@@ -125,12 +137,6 @@
         <div class="col">
           <input class="form-check-input hell-sim-param" type="checkbox" id="slow">
           <label class="form-check-label" for="slow">Slow (Tortoise)</label>
-        </div>
-        <div class="col">
-        </div>
-        <div class="col">
-        </div>
-        <div class="col">
         </div>
       </div>
     </div>

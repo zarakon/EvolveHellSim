@@ -787,7 +787,7 @@ function ArmyRating(params, sim, size, wound) {
         }
     }
     
-    if (params.autocracy) {
+    if (params.government == "autocracy") {
         rating *= 1.35;
     }
     
@@ -803,6 +803,10 @@ function ArmyRating(params, sim, size, wound) {
     
     if (params.cannibal) {
         rating *= 1.15;
+    }
+    
+    if (params.government == "democracy") {
+        rating *= 0.95;
     }
     
     return Math.round(rating);
@@ -961,8 +965,10 @@ function GetParams() {
             params[id] = true;
         } else if (el.val() == "false") {
             params[id] = false;
-        } else {
+        } else if (!isNaN(el.val())) {
             params[id] = Number(el.val());
+        } else {
+            params[id] = el.val();
         }
     });
     
@@ -971,13 +977,16 @@ function GetParams() {
 
 /* Fill parameter values back to the form */
 function SetParams(params) {
+    console.log(params);
     for (const key of Object.keys(params)) {
         let id = "#" + key;
         let el = $(id);
-        if (el.attr('type') == "checkbox") {
-            el[0].checked = params[key];
-        } else {
-            el.val(params[key].toString());
+        if (el.length && params[key]) {
+            if (el.attr('type') == "checkbox") {
+                el[0].checked = params[key];
+            } else {
+                el.val(params[key].toString());
+            }
         }
     }
 }
@@ -1008,7 +1017,6 @@ function ConvertSave(save) {
     $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#armored')[0].checked = save.race['armored'] ? true : false;
-    $('#autocracy')[0].checked = (save.civic.govern.type == "autocracy");
     $('#brute')[0].checked = save.race['brute'] ? true : false;
     $('#cannibal')[0].checked = save.race['cannibalize'] ? true : false;
     $('#cautious')[0].checked = save.race['cautious'] ? true : false;
@@ -1035,6 +1043,7 @@ function ConvertSave(save) {
     $('#armorTech')[0].value = save.tech['armor'];
     $('#tactical')[0].value = save.race['tactical'] || 0;
     $('#temples')[0].value = save.tech['fanaticism'] >= 4 ? save.city.temple.count : 0;
+    $('#government')[0].value = save.civic.govern.type || 'anarchy';
     $('#bootCamps')[0].value = save.city.boot_camp.count;
     $('#vrTraining')[0].value = save.tech['boot_camp'] >= 2 ? true : false;
     $('#hospitals')[0].value = save.city.hospital.count;

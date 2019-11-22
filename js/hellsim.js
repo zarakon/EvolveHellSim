@@ -537,7 +537,7 @@ function BloodWar(params, sim, stats) {
 
     /* Surveyors */
     if (sim.surveyors > 0) {
-        let danger = sim.threat / 1000;
+        let danger = sim.threat / (params.blurry ? 1250 : 1000);
         let exposure = Math.min(10, sim.surveyors);
         let risk = 10 - Rand(0, exposure+1);
         
@@ -642,9 +642,10 @@ function HealSoldiers(params, sim, stats) {
         healCredits += 3;
     }
     
-    healed += Math.floor(healCredits / 20);
-    healCredits = healCredits % 20;
-    if (Rand(0, healCredits) > Rand(0, 20)) {
+    let healCost = params.slowRegen ? 25 : 20;
+    healed += Math.floor(healCredits / healCost);
+    healCredits = healCredits % healCost;
+    if (Rand(0, healCredits) > Rand(0, healCost)) {
         healed++;
     }
     
@@ -1017,6 +1018,7 @@ function ConvertSave(save) {
     $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#armored')[0].checked = save.race['armored'] ? true : false;
+    $('#blurry')[0].checked = save.race['blurry'] ? true : false;
     $('#brute')[0].checked = save.race['brute'] ? true : false;
     $('#cannibal')[0].checked = save.race['cannibalize'] ? true : false;
     $('#cautious')[0].checked = save.race['cautious'] ? true : false;
@@ -1038,6 +1040,7 @@ function ConvertSave(save) {
     $('#scales')[0].checked = save.race['scales'] ? true : false;
     $('#slaver')[0].checked = save.race['slaver'] ? true : false;
     $('#slow')[0].checked = save.race['slow'] ? true : false;
+    $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
     
     $('#weaponTech')[0].value = save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military'];
     $('#armorTech')[0].value = save.tech['armor'];

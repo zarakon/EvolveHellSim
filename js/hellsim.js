@@ -350,6 +350,9 @@ function BloodWar(params, sim, stats) {
     for (let i = 0; i < params.beacons; i++) {
         gemOdds = Math.round(gemOdds * 0.92);
     }
+    if (params.ghostly) {
+        gemOdds = Math.round(gemOdds * 0.85);
+    }
     
     /* Patrols */
     let soldiersKilled = 0;
@@ -1028,6 +1031,7 @@ function ConvertSave(save) {
     $('#elusive')[0].checked = save.race['elusive'] ? true : false;
     $('#evil')[0].checked = save.race['evil'] ? true : false;
     $('#fiery')[0].checked = save.race['fiery'] ? true : false;
+    $('#ghostly')[0].checked = save.race['ghostly'] ? true : false;
     $('#hivemind')[0].checked = save.race['hivemind'] ? true : false;
     $('#hyper')[0].checked = save.race['hyper'] ? true : false;
     $('#kindling')[0].checked = save.race['kindling_kindred'] ? true : false;

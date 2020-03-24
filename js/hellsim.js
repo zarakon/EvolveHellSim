@@ -1098,6 +1098,19 @@ function ConvertSave(save) {
         $('#droids')[0].value = save.portal.war_droid ? save.portal.war_droid.on : 0;
         $('#guns')[0].value = save.portal.gun_emplacement ? save.portal.gun_emplacement.on : 0;
         $('#soulAttractors')[0].value = save.portal.soul_attractor ? save.portal.soul_attractor.on : 0;
+    } else {
+        $('#patrols')[0].value = 0;
+        $('#patrolSize')[0].value = 0;
+        $('#defenders')[0].value = 0;
+        $('#garrison')[0].value = 0;
+        $('#surveyors')[0].value = 0;
+        $('#repairDroids')[0].value = 0;
+        $('#turrets')[0].value = 0;
+        $('#beacons')[0].value = 0;
+        $('#predators')[0].value = 0;
+        $('#droids')[0].value = 0;
+        $('#guns')[0].value = 0;
+        $('#soulAttractors')[0].value = 0;
     }
     OnChange();
 }

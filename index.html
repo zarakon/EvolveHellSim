@@ -18,7 +18,7 @@
 <body>
   <div class="row">
     <div class="col-auto"><h3>Evolve Hell Simulator</h3></div>
-    <div class="col-auto">By jotun (aka Zarakon)<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v0.8.0.29</div>
+    <div class="col-auto">By jotun (aka Zarakon)<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v0.8.0.35</div>
     <div class="col-auto">
       <form class="form-inline" id="importForm">
         <input type="textarea" class="form-control mb-2 mr-sm-2" id="saveString" placeholder="Evolve Save String"></input>
@@ -158,88 +158,158 @@
     </div>
 
     <div class="form-group">
-      <h5>Civilization</h5>
-      <div class="form-row">
-        <div class="form-group col-sm">
-          <label for="weaponTech">Weapon Tech Level</label>
-          <select class="form-control form-control-sm hell-sim-param" id="weaponTech">
-            <option value=1>None</option>
-            <option value=2>Bows</option>
-            <option value=3>Flintlock Rifles</option>
-            <option value=4>Machine Guns</option>
-            <option value=5>Rail Guns</option>
-            <option value=6 selected>Laser Rifles</option>
-            <option value=7>Plasma Rifles</option>
-            <option value=8>Disruptor Rifles</option>
-            <option value=9>Gauss Rifles</option>
-          </select>
+      <h5>Upgrades</h5>
+      <div class="form-row mb-2">
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="zealotry">
+          <label class="form-check-label" for="zealotry">Zealotry</label>
         </div>
-        <div class="form-group col-sm">
-          <label for="armorTech">Armor Tech Level</label>
-          <select class="form-control form-control-sm hell-sim-param" id="armorTech">
-            <option value=0>None</option>
-            <option value=1>Leather Armor</option>
-            <option value=2>Plate Armor</option>
-            <option value=3 selected>Kevlar</option>
-            <option value=4>Nanoweave</option>
-          </select>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="vrTraining">
+          <label class="form-check-label" for="vrTraining">VR Training</label>
         </div>
-        <div class="form-group col-sm">
-          <label for="tactical">Tactical Genes</label>
-          <input class="form-control form-control-sm hell-sim-param" id="tactical" value="0" type="number">
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="bacTanks">
+          <label class="form-check-label" for="bacTanks">BAC Tanks</label>
         </div>
-        <div class="form-group col-sm">
-          <label for="temples">Fanatical Temples</label>
-          <input class="form-control form-control-sm hell-sim-param" id="temples" value="40" type="number">
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="advDrones">
+          <label class="form-check-label" for="advDrones">Advanced Drones</label>
         </div>
-        <div class="form-group col-sm">
-          <label for="government">Government</label>
-          <select class="form-control form-control-sm hell-sim-param" id="government">
-            <option value=anarchy selected>Anarchy</option>
-            <option value=autocracy>Autocracy</option>
-            <option value=democracy>Democracy</option>
-            <option value=oligarchy>Oligarchy</option>
-            <option value=theocracy>Theocracy</option>
-            <option value=republic>Republic</option>
-            <option value=socialist>Socialist</option>
-            <option value=corpocracy>Corpocracy</option>
-            <option value=technocracy>Technocracy</option>
-            <option value=federation>Federation</option>
-          </select>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="enhDroids">
+          <label class="form-check-label" for="enhDroids">Enhanced War Droids</label>
         </div>
-        <div class="form-group col-sm">
-          <label for="darkEnergy">Evil Universe Dark Energy</label>
-          <input class="form-control form-control-sm hell-sim-param" id="darkEnergy" value="0" type="number" step=".001">
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="soulForge">
+          <label class="form-check-label" for="soulForge">Soul Forge Active</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="soulAbsorption">
+          <label class="form-check-label" for="soulAbsorption">Soul Absorption</label>
+        </div>
+        <div class="col-auto">
+          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="advGuns">
+          <label class="form-check-label" for="advGuns">Adv. Gun Emplacements</label>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group col-sm">
-          <label for="bootCamps">Boot Camps</label>
-          <input class="form-control form-control-sm hell-sim-param" id="bootCamps" value="5" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Weapons</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="weaponTech">
+              <option value=1>None</option>
+              <option value=2>Bows</option>
+              <option value=3>Flintlock Rifles</option>
+              <option value=4>Machine Guns</option>
+              <option value=5>Rail Guns</option>
+              <option value=6 selected>Laser Rifles</option>
+              <option value=7>Plasma Rifles</option>
+              <option value=8>Disruptor Rifles</option>
+              <option value=9>Gauss Rifles</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="vrTraining">VR Training</label>
-          <select class="form-control form-control-sm hell-sim-param" id="vrTraining">
-            <option value=false selected>No</option>
-            <option value=true>Yes</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Armor</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="armorTech">
+              <option value=0>None</option>
+              <option value=1>Leather Armor</option>
+              <option value=2>Plate Armor</option>
+              <option value=3 selected>Kevlar</option>
+              <option value=4>Nanoweave</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="hospitals">Hospitals</label>
-          <input class="form-control form-control-sm hell-sim-param" id="hospitals" value="5" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Turrets</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="turretTech">
+              <option value=0>Automated Turrets</option>
+              <option value=1 selected>Laser Turrets</option>
+              <option value=2>Plasma Turrets</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="bacTanks">BAC Tanks</label>
-          <select class="form-control form-control-sm hell-sim-param" id="bacTanks">
-            <option value=false selected>No</option>
-            <option value=true>Yes</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Government</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="government">
+              <option value=anarchy selected>Anarchy</option>
+              <option value=autocracy>Autocracy</option>
+              <option value=democracy>Democracy</option>
+              <option value=oligarchy>Oligarchy</option>
+              <option value=theocracy>Theocracy</option>
+              <option value=republic>Republic</option>
+              <option value=socialist>Socialist</option>
+              <option value=corpocracy>Corpocracy</option>
+              <option value=technocracy>Technocracy</option>
+              <option value=federation>Federation</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="fibroblast">Fibroblast Genes</label>
-          <input class="form-control form-control-sm hell-sim-param" id="fibroblast" value="0" type="number">
         </div>
         <div class="form-group col-sm">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Boot Camps</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="bootCamps" value="5" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Hospitals</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="hospitals" value="5" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Tactical Genes</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="tactical" value="10" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Fibroblast Genes</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="fibroblast" value="5" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Temples</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="temples" value="40" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Evil Dark Energy</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="darkEnergy" value="0" type="number" style="text-align: right">
+          </div>
         </div>
       </div>
     </div>
@@ -248,50 +318,102 @@
       <h5>Hell Setup</h5>
       <div class="form-row">
         <div class="form-group col-sm">
-          <label for="patrols">Patrols</label>
-          <input class="form-control form-control-sm hell-sim-param" id="patrols" value="5" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Patrols</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="patrols" value="5" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="patrolSize">Patrol Size</label>
-          <input class="form-control form-control-sm hell-sim-param" id="patrolSize" value="10" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Patrol Size</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="patrolSize" value="10" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="fortressTroops">Fortress Troops</label>
-          <input class="form-control form-control-sm hell-sim-param" id="defenders" value="20" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Fortress Troops</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="defenders" value="20" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="garrison">Garrison Troops</label>
-          <input class="form-control form-control-sm hell-sim-param" id="garrison" value="30" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Garrison Troops</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="garrison" value="30" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="surveyors">Surveyors</label>
-          <input class="form-control form-control-sm hell-sim-param" id="surveyors" value="5" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Surveyors</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="surveyors" value="10" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Repair Droids</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="repairDroids" value="0" type="number" style="text-align: right">
+          </div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group col-sm">
-          <label for="turrets">Turrets</label>
-          <input class="form-control form-control-sm hell-sim-param" id="turrets" value="5" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Turrets</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="turrets" value="5" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="turretTech">Turret Tech</label>
-          <select class="form-control form-control-sm hell-sim-param" id="turretTech">
-            <option value=0>Automated Turrets</option>
-            <option value=1 selected>Laser Turrets</option>
-            <option value=2>Plasma Turrets</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Attractor Beacons</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="beacons" value="0" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="beacons">Attractor Beacons</label>
-          <input class="form-control form-control-sm hell-sim-param" id="beacons" value="0" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Predator Drones</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="predators" value="0" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="predators">Predator Drones</label>
-          <input class="form-control form-control-sm hell-sim-param" id="predators" value="0" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">War Droids</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="droids" value="0" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="droids">War Droids</label>
-          <input class="form-control form-control-sm hell-sim-param" id="droids" value="0" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Gun Emplacements</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="guns" value="0" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Soul Attractors</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="soulAttractors" value="0" type="number" style="text-align: right">
+          </div>
         </div>
       </div>
     </div>
@@ -300,37 +422,61 @@
       <h5>Sim Options</h5>
       <div class="form-row">
         <div class="form-group col-sm">
-          <label for="sims">Sims</label>
-          <input class="form-control form-control-sm hell-sim-param" id="sims" value="10" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Sims</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="sims" value="50" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="hours">Sim Hours</label>
-          <input class="form-control form-control-sm hell-sim-param" id="hours" value="12" type="number" step=".001">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Sim Hours</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="hours" value="12" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="threat">Initial Threat</label>
-          <input class="form-control form-control-sm hell-sim-param" id="threat" value="1500" type="number">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Initial Threat</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="threat" value="1500" type="number" style="text-align: right">
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="sieges">Sieges</label>
-          <select class="form-control form-control-sm hell-sim-param" id="sieges">
-            <option value=false>No</option>
-            <option value=true selected>Yes</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Sieges</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="sieges">
+              <option value=false>No</option>
+              <option value=true selected>Yes</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="surges">Demon Surges</label>
-          <select class="form-control form-control-sm hell-sim-param" id="surges">
-            <option value=false>No</option>
-            <option value=true selected>Yes</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Surges</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="surges">
+              <option value=false>No</option>
+              <option value=true selected>Yes</option>
+            </select>
+          </div>
         </div>
         <div class="form-group col-sm">
-          <label for="terrorists">Terrorists</label>
-          <select class="form-control form-control-sm hell-sim-param" id="terrorists">
-            <option value=false>No</option>
-            <option value=true selected>Yes</option>
-          </select>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Terrorists</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="terrorists">
+              <option value=false>No</option>
+              <option value=true selected>Yes</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="form-row">

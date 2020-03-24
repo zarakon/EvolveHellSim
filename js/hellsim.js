@@ -540,7 +540,14 @@ function BloodWar(params, sim, stats) {
 
     /* Surveyors */
     if (sim.surveyors > 0) {
-        let danger = sim.threat / (params.blurry ? 1250 : 1000);
+        let divisor = 1000;
+        if (params.blurry) {
+            divisor += 250;
+        }
+        if (params.shieldGen) {
+            divisor += 250;
+        }
+        let danger = sim.threat / divisor;
         let exposure = Math.min(10, sim.surveyors);
         let risk = 10 - Rand(0, exposure+1);
         
@@ -1048,10 +1055,12 @@ function ConvertSave(save) {
     
     $('#weaponTech')[0].value = save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military'];
     $('#armorTech')[0].value = save.tech['armor'] || 0;
+    $('#turretTech')[0].value = save.tech['turret'] || 0;
     $('#tactical')[0].value = save.race['tactical'] || 0;
     $('#temples')[0].value = save.tech['fanaticism'] >= 4 ? save.city.temple.count : 0;
     $('#government')[0].value = save.civic.govern.type || 'anarchy';
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
+    $('#zealotry')[0].value = save.tech['fanaticism'] >= 4 ? true : false;
     $('#vrTraining')[0].value = save.tech['boot_camp'] >= 2 ? true : false;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
     $('#bacTanks')[0].value = save.tech['medic'] >= 2 ? true : false;
@@ -1079,7 +1088,6 @@ function ConvertSave(save) {
         $('#droids')[0].value = save.portal.war_droid ? save.portal.war_droid.on : 0;
         $('#surveyors')[0].value = save.portal.carport ? save.portal.carport.count : 0;
         $('#turrets')[0].value = save.portal.turret ? save.portal.turret.on : 0;
-        $('#turretTech')[0].value = save.tech['turret'] ? save.tech['turret'] : 1;
     }
     OnChange();
 }

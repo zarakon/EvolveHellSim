@@ -1053,6 +1053,10 @@ function ConvertSave(save) {
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
     
+    $('#zealotry')[0].checked = save.tech['fanaticism'] >= 4 ? true : false;
+    $('#vrTraining')[0].checked = save.tech['boot_camp'] >= 2 ? true : false;
+    $('#bacTanks')[0].checked = save.tech['medic'] >= 2 ? true : false;
+
     $('#weaponTech')[0].value = save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military'];
     $('#armorTech')[0].value = save.tech['armor'] || 0;
     $('#turretTech')[0].value = save.tech['turret'] || 0;
@@ -1060,10 +1064,7 @@ function ConvertSave(save) {
     $('#temples')[0].value = save.tech['fanaticism'] >= 4 ? save.city.temple.count : 0;
     $('#government')[0].value = save.civic.govern.type || 'anarchy';
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
-    $('#zealotry')[0].value = save.tech['fanaticism'] >= 4 ? true : false;
-    $('#vrTraining')[0].value = save.tech['boot_camp'] >= 2 ? true : false;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
-    $('#bacTanks')[0].value = save.tech['medic'] >= 2 ? true : false;
     $('#fibroblast')[0].value = save.race['fibroblast'] || 0;
     $('#darkEnergy')[0].value = save.race.universe == 'evil' ? save.race.Dark.count : 0;
     

@@ -22,7 +22,8 @@ function Simulate() {
         ticks: 0,
         tickLength: 0,
         simsDone: 0,
-        soulGems: 0,
+        patrolGems: 0,
+        forgeGems: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
         maxPreFightThreat: params.threat,
@@ -56,6 +57,8 @@ function Simulate() {
         totalPity: 0,
         totalPityPerGem: 0,
         maxPity: 0,
+        totalGarrison: 0,
+        kills: 0,
     };
     
     stats.tickLength = 250;
@@ -114,6 +117,7 @@ function SimRun(params, sim, stats) {
             wallRepair: 0,
             pity: 0,
             eventOdds: 999,
+            forgeSouls: 0,
             done: false,
         };
         let simNum = stats.simsDone + 1;
@@ -158,8 +162,13 @@ function SimRun(params, sim, stats) {
         
         /* Repair walls */
         if (sim.walls < 100) {
+            let repair = 200;
+            if (params.repairDroids > 0) {
+                repair *= 0.95 ** params.repairDroids;
+                repair = Math.round(repair);
+            }
             sim.wallRepair++;
-            if (sim.wallRepair >= 200) {
+            if (sim.wallRepair >= repair) {
                 sim.wallRepair = 0;
                 sim.walls++;
             }
@@ -223,12 +232,12 @@ function SimResults(params, stats) {
             (stats.patrolFails ? " (avg " + (stats.patrolFailTicks * ticksPerHour / stats.patrolFails).toFixed(1) + " hrs)" : "") +
             "\n");
     LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
-    LogResult(stats, "Soul gems:   " + stats.soulGems +
-            ",  per hour: " + (stats.soulGems / hours).toFixed(3) +
+    LogResult(stats, "Soul gems:   " + stats.patrolGems +
+            ",  per hour: " + (stats.patrolGems / hours).toFixed(3) +
             "\n");
     LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
             ",  max: " + stats.maxPity +
-            ", avg per gem: " + (stats.totalPityPerGem / stats.soulGems).toFixed(0) +
+            ", avg per gem: " + (stats.totalPityPerGem / stats.patrolGems).toFixed(0) +
             "\n");
     LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
@@ -333,7 +342,7 @@ function BloodWar(params, sim, stats) {
             let minDemons = Math.floor(sim.threat / 50);
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
-            let kills = Rand(25, 75);
+            let kills = params.advDrones ? Rand(50, 125) : Rand(25, 75);
             if (kills < demons) {
                 sim.threat -= kills;
             } else {
@@ -384,7 +393,7 @@ function BloodWar(params, sim, stats) {
             let patrolSize = params.patrolSize;
             /* Add droids if available */
             if (i < params.droids) {
-                patrolSize++;
+                patrolSize += params.enhDroids ? 2 : 1;
             }
             
             let patrolRating = ArmyRating(params, sim, patrolSize, wounded);
@@ -420,7 +429,7 @@ function BloodWar(params, sim, stats) {
                 
                 /* Chance to find a soul gem */
                 if (Rand(0, gemOdds) == 0) {
-                    stats.soulGems++;
+                    stats.patrolGems++;
                     stats.totalPityPerGem += sim.pity;
                     sim.pity = 0;
                 } else {
@@ -669,9 +678,14 @@ function RepairSurveyors(params, sim, stats) {
     if (sim.surveyors >= params.surveyors) {
         return;
     }
+    let repair = 180;
+    if (params.repairDroids > 0) {
+        repair *= 0.95 ** params.repairDroids;
+        repair = Math.round(repair);
+    }
     
     sim.carRepair++;
-    if (sim.carRepair >= 180) {
+    if (sim.carRepair >= repair) {
         sim.carRepair = 0;
         sim.surveyors++;
     }
@@ -875,7 +889,11 @@ function OnChange() {
     var trainingTime;
     
     patrolRating = ArmyRating(params, false, params.patrolSize);
-    patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
+    if (params.enhDroids) {
+        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
+    } else {
+        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
+    }
     
     ratingStr = "";
     if (params.cautious) {

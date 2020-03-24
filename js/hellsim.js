@@ -1053,15 +1053,21 @@ function ConvertSave(save) {
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
     
-    $('#zealotry')[0].checked = save.tech['fanaticism'] >= 4 ? true : false;
-    $('#vrTraining')[0].checked = save.tech['boot_camp'] >= 2 ? true : false;
-    $('#bacTanks')[0].checked = save.tech['medic'] >= 2 ? true : false;
+    $('#zealotry')[0].checked = save.tech['fanaticism'] && save.tech['fanaticism'] >= 4 ? true : false;
+    $('#vrTraining')[0].checked = save.tech['boot_camp'] && save.tech['boot_camp'] >= 2 ? true : false;
+    $('#bacTanks')[0].checked = save.tech['medic'] && save.tech['medic'] >= 2 ? true : false;
+    $('#shieldGen')[0].checked = save.tech['infernite'] && save.tech['infernite'] >= 5 ? true : false;
+    $('#advDrones')[0].checked = save.tech['portal'] && save.tech['portal'] >= 7 ? true : false;
+    $('#enhDroids')[0].checked = save.tech['hdroid'] && save.tech['hdroid'] >= 1 ? true : false;
+    $('#soulForge')[0].checked = save.portal && save.portal.soul_forge && save.portal.soul_forge.on >= 1 ? true : false;
+    $('#soulAbsorption')[0].checked = save.tech['hell_pit'] && save.tech['hell_pit'] >= 6 ? true : false;
+    $('#advGuns')[0].checked = save.tech['hell_gun'] && save.tech['hell_gun'] >= 2 ? true : false;
 
-    $('#weaponTech')[0].value = save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military'];
+    $('#weaponTech')[0].value = save.tech['military'] ? (save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military']) : 0;
     $('#armorTech')[0].value = save.tech['armor'] || 0;
     $('#turretTech')[0].value = save.tech['turret'] || 0;
     $('#tactical')[0].value = save.race['tactical'] || 0;
-    $('#temples')[0].value = save.tech['fanaticism'] >= 4 ? save.city.temple.count : 0;
+    $('#temples')[0].value = save.city.temple ? save.city.temple.count : 0;
     $('#government')[0].value = save.civic.govern.type || 'anarchy';
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
@@ -1084,11 +1090,14 @@ function ConvertSave(save) {
         $('#patrolSize')[0].value = patrolSize;
         $('#defenders')[0].value = defenders;
         $('#garrison')[0].value = garrison;
+        $('#surveyors')[0].value = save.portal.carport ? save.portal.carport.count : 0;
+        $('#repairDroids')[0].value = save.portal.repair_droid ? save.portal.repair_droid.count : 0;
+        $('#turrets')[0].value = save.portal.turret ? save.portal.turret.on : 0;
         $('#beacons')[0].value = save.portal.attractor ? save.portal.attractor.on : 0;
         $('#predators')[0].value = save.portal.war_drone ? save.portal.war_drone.on : 0;
         $('#droids')[0].value = save.portal.war_droid ? save.portal.war_droid.on : 0;
-        $('#surveyors')[0].value = save.portal.carport ? save.portal.carport.count : 0;
-        $('#turrets')[0].value = save.portal.turret ? save.portal.turret.on : 0;
+        $('#guns')[0].value = save.portal.gun_emplacement ? save.portal.gun_emplacement.on : 0;
+        $('#soulAttractors')[0].value = save.portal.soul_attractor ? save.portal.soul_attractor.on : 0;
     }
     OnChange();
 }

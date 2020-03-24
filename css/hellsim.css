@@ -71,9 +71,6 @@ a:hover {
     border: 1px solid #7b7b7b;
 }
 
-.input-group-sm>.custom-select, .input-group-sm>.form-control, .input-group-sm>.input-group-append>.btn, .input-group-sm>.input-group-append>.input-group-text, .input-group-sm>.input-group-prepend>.btn, .input-group-sm>.input-group-prepend>.input-group-text {
-    font-size: 1rem;
-}
 .progress {
 	background-color: #3d2e29;
 }

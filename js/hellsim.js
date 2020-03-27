@@ -622,7 +622,7 @@ function BloodWar(params, sim, stats) {
 
     /* Soul Attractors */
     if (forgeOperating) {
-        forgeSouls += params.soulAttractors * Rand(10, 25);
+        forgeSouls += params.soulAttractors * Rand(25, 75);
     }
 
     /* Gun Emplacements */

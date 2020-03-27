@@ -24,6 +24,7 @@ function Simulate() {
         simsDone: 0,
         patrolGems: 0,
         forgeGems: 0,
+        gunGems: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
         maxPreFightThreat: params.threat,
@@ -59,6 +60,8 @@ function Simulate() {
         maxPity: 0,
         totalGarrison: 0,
         kills: 0,
+        forgeOn: 0,
+        forgeSouls: 0,
     };
     
     stats.tickLength = 250;
@@ -120,6 +123,12 @@ function SimRun(params, sim, stats) {
             forgeSouls: 0,
             done: false,
         };
+        if (params.soulForge == 2) {
+            let forgeSoldiers = ForgeSoldiers(params);
+            sim.maxSoldiers += forgeSoldiers;
+            sim.hellSoldiers += forgeSoldiers;
+            sim.maxHellSoldiers += forgeSoldiers;
+        }
         let simNum = stats.simsDone + 1;
         LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
     }
@@ -136,7 +145,7 @@ function SimRun(params, sim, stats) {
                 stats.wallFails++;
                 stats.wallFailTicks += sim.tick;
                 break;
-            } else if (sim.patrols == 0) {
+            } else if (sim.patrols == 0 && params.patrols != 0) {
                 stats.patrolFails++;
                 stats.patrolFailTicks += sim.tick;
                 break;
@@ -153,6 +162,7 @@ function SimRun(params, sim, stats) {
         if (sim.soldiers < sim.maxSoldiers) {
             TrainSoldiers(params, sim, stats);
         }
+        stats.totalGarrison += (sim.soldiers - sim.hellSoldiers);
         
         stats.totalSurveyors += sim.surveyors;
         stats.minSurveyors = Math.min(stats.minSurveyors, sim.surveyors);
@@ -232,8 +242,11 @@ function SimResults(params, stats) {
             (stats.patrolFails ? " (avg " + (stats.patrolFailTicks * ticksPerHour / stats.patrolFails).toFixed(1) + " hrs)" : "") +
             "\n");
     LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
-    LogResult(stats, "Soul gems:   " + stats.patrolGems +
-            ",  per hour: " + (stats.patrolGems / hours).toFixed(3) +
+    LogResult(stats, "Soul gems per hour:   " +
+            "Patrols " + (stats.patrolGems / hours).toFixed(2) + ", " +
+            "Guns " + (stats.gunGems / hours).toFixed(2) + ", " +
+            "Forge " + (stats.forgeGems / hours).toFixed(2) + ", " +
+            "Total " + ((stats.patrolGems + stats.gunGems + stats.forgeGems) / hours).toFixed(2) +
             "\n");
     LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
             ",  max: " + stats.maxPity +
@@ -286,7 +299,7 @@ function SimResults(params, stats) {
             ",  max: " + stats.maxPatrolsSurvived +
             "\n");
     LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / stats.ticks).toFixed(1) +
-            " (" + Math.round((stats.totalSurveyors / stats.ticks) / params.surveyors * 100) + "%)" +
+            " (" + ((stats.totalSurveyors / stats.ticks) / params.surveyors * 100).toFixed(1) + "%)" +
             ",  min " + stats.minSurveyors + " of " + params.surveyors +
             "\n");
     LogResult(stats, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
@@ -336,6 +349,18 @@ function BloodWar(params, sim, stats) {
         " ; hellSoldiers " + sim.hellSoldiers +
         " ; threat " + sim.threat);
 
+    /* Check whether enough soldiers are currently available to keep the soul forge running */
+    let forgeOperating = false;
+    if (params.soulForge >= 1) {
+        let defenders = sim.hellSoldiers - (sim.patrols * params.patrolSize);
+        let forgeSoldiers = ForgeSoldiers(params);
+        if (defenders >= forgeSoldiers) {
+            forgeOperating = true;
+            stats.forgeOn++;
+        }
+    }
+    let forgeSouls = 0;
+
     /* Drone Strikes */
     for (let i = 0; i < params.predators; i++) {
         if (Rand(0, sim.threat) >= Rand(0, 999)) {
@@ -345,8 +370,16 @@ function BloodWar(params, sim, stats) {
             let kills = params.advDrones ? Rand(50, 125) : Rand(25, 75);
             if (kills < demons) {
                 sim.threat -= kills;
+                if (forgeOperating) {
+                    forgeSouls += kills;
+                }
+                stats.kills += kills;
             } else {
                 sim.threat -= demons;
+                if (forgeOperating) {
+                    forgeSouls += demons;
+                }
+                stats.kills += demons;
             }
         }
     }
@@ -413,8 +446,16 @@ function BloodWar(params, sim, stats) {
                 let demonsKilled = Math.round(patrolRating / 2);
                 if (demonsKilled < demons) {
                     sim.threat -= demonsKilled;
+                    if (forgeOperating) {
+                        forgeSouls += demonsKilled;
+                    }
+                    stats.kills += demonsKilled;
                 } else {
                     sim.threat -= demons;
+                    if (forgeOperating) {
+                        forgeSouls += demons;
+                    }
+                    stats.kills += demons;
                 }
             } else {
                 /* Normal encounter */
@@ -423,8 +464,16 @@ function BloodWar(params, sim, stats) {
                     /* Suffer casualties if the patrol didn't kill all of the demons */
                     soldiersKilled += PatrolCasualties(params, sim, stats, (demons - demonsKilled), false);
                     sim.threat -= demonsKilled;
+                    if (forgeOperating) {
+                        forgeSouls += demonsKilled;
+                    }
+                    stats.kills += demonsKilled;
                 } else {
                     sim.threat -= demons;
+                    if (forgeOperating) {
+                        forgeSouls += demons;
+                    }
+                    stats.kills += demons;
                 }
                 
                 /* Chance to find a soul gem */
@@ -504,11 +553,11 @@ function BloodWar(params, sim, stats) {
             }
 
             defense = Math.max(1, defense / 35);
-            
-            
-            
+
+            let totalKills = 0;
             while (demons > 0 && sim.walls > 0) {
                 let kills = Math.round(Rand(1, defense+1));
+                totalKills += Math.min(kills, demons);
                 demons -= Math.min(kills, demons);
                 sim.threat -= Math.min(kills, sim.threat);
                 if (demons > 0) {
@@ -518,6 +567,10 @@ function BloodWar(params, sim, stats) {
                     }
                 }
             }
+            if (forgeOperating) {
+                forgeSouls += totalKills;
+            }
+            stats.kills += totalKills;
             if (params.printSieges) {
                 LogResult(stats, ",  Walls " + sim.walls + "\n");
             }
@@ -567,8 +620,46 @@ function BloodWar(params, sim, stats) {
         }
     }
 
+    /* Soul Attractors */
+    if (forgeOperating) {
+        forgeSouls += params.soulAttractors * Rand(10, 25);
+    }
 
-
+    /* Gun Emplacements */
+    if (forgeOperating) {
+        let gunKills = 0;
+        if (params.advGuns) {
+            gunKills = params.guns * Rand(20, 45);
+        } else {
+            gunKills = params.guns * Rand(10, 25);
+        }
+        forgeSouls += gunKills;
+        stats.kills += gunKills;
+        for (let i = 0; i < params.guns; i++) {
+            if (Rand(0, 7500) == 0) {
+                stats.gunGems++;
+            }
+        }
+    }
+    
+    /* Soul Forge */
+    if (forgeOperating) {
+        let forgeKills = Rand(25, 150);
+        forgeSouls += forgeKills;
+        stats.kills += forgeKills;
+        if (Rand(0, 5000) == 0) {
+            stats.gunGems++;
+        }
+    
+        stats.forgeSouls += forgeSouls;
+        sim.forgeSouls += forgeSouls;
+        
+        let cap = params.soulAbsorption ? 750000 : 1000000;
+        if (sim.forgeSouls > cap) {
+            stats.forgeGems++;
+            sim.forgeSouls = 0;
+        }
+    }
 }
 
 function Events(params, sim, stats) {
@@ -846,6 +937,12 @@ function FortressRating(params, sim) {
     if (sim) {
         patrols = sim.patrols;
         defenders = sim.hellSoldiers - (sim.patrols * params.patrolSize);
+        if (params.soulForge >= 1) {
+            let forgeSoldiers = ForgeSoldiers(params);
+            if (defenders >= forgeSoldiers) {
+                defenders -= forgeSoldiers;
+            }
+        }
         let garrison = sim.soldiers - sim.hellSoldiers;
         if (sim.wounded > garrison) {
             wounded = sim.wounded - garrison;
@@ -879,6 +976,15 @@ function FortressRating(params, sim) {
     }
     
     return ArmyRating(params, sim, defenders, wounded) + params.turrets * turretRating;
+}
+
+function ForgeSoldiers(params) {
+    let soldiers = Math.round(650 / ArmyRating(params, false, 1));
+    let gunValue = params.advGuns ? 2 : 1;
+    
+    soldiers = Math.max(0, soldiers - params.guns * gunValue);
+    
+    return soldiers;
 }
 
 function OnChange() {
@@ -929,6 +1035,13 @@ function OnChange() {
     let trainingRate = 3600 / trainingTime;
     $('#trainingRate').html(trainingTime.toFixed(2) + "sec&nbsp;&nbsp;&nbsp;" + trainingRate.toFixed(1) + "/hour");
     
+
+    let forgeSoldiers = ForgeSoldiers(params);
+    if (params.soulForge == 2) {
+        $('#forgeSoldiers').html(forgeSoldiers + " / " + forgeSoldiers + " soldiers");
+    } else {
+        $('#forgeSoldiers').html("0 / " + forgeSoldiers + " soldiers");
+    }
     
     /* Save params to localStorage */
     window.localStorage.setItem('hellSimParams', JSON.stringify(params));
@@ -1077,7 +1190,6 @@ function ConvertSave(save) {
     $('#shieldGen')[0].checked = save.tech['infernite'] && save.tech['infernite'] >= 5 ? true : false;
     $('#advDrones')[0].checked = save.tech['portal'] && save.tech['portal'] >= 7 ? true : false;
     $('#enhDroids')[0].checked = save.tech['hdroid'] && save.tech['hdroid'] >= 1 ? true : false;
-    $('#soulForge')[0].checked = save.portal && save.portal.soul_forge && save.portal.soul_forge.on >= 1 ? true : false;
     $('#soulAbsorption')[0].checked = save.tech['hell_pit'] && save.tech['hell_pit'] >= 6 ? true : false;
     $('#advGuns')[0].checked = save.tech['hell_gun'] && save.tech['hell_gun'] >= 2 ? true : false;
 
@@ -1116,6 +1228,7 @@ function ConvertSave(save) {
         $('#droids')[0].value = save.portal.war_droid ? save.portal.war_droid.on : 0;
         $('#guns')[0].value = save.portal.gun_emplacement ? save.portal.gun_emplacement.on : 0;
         $('#soulAttractors')[0].value = save.portal.soul_attractor ? save.portal.soul_attractor.on : 0;
+        $('#soulForge')[0].value = 0; /* Update later */
     } else {
         $('#patrols')[0].value = 0;
         $('#patrolSize')[0].value = 0;
@@ -1129,8 +1242,23 @@ function ConvertSave(save) {
         $('#droids')[0].value = 0;
         $('#guns')[0].value = 0;
         $('#soulAttractors')[0].value = 0;
+        $('#soulForge')[0].value = 0;
     }
+
+    /* Update for Soul Forge */
+    let params = GetParams();
+    if (save.portal && save.portal.fortress && save.portal.soul_forge && save.portal.soul_forge.on >= 1) {
+        let forgeSoldiers = ForgeSoldiers(params);
+        if (params.defenders >= forgeSoldiers) {
+            $('#soulForge')[0].value = 2;
+            $('#defenders')[0].value -= forgeSoldiers;
+        } else {
+            $('#soulForge')[0].value = 1;
+        }
+    }
+
     OnChange();
+    
 }
 
 $(document).ready(function() {

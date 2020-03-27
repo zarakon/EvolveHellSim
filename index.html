@@ -185,10 +185,6 @@
           <label class="form-check-label" for="enhDroids">Enhanced War Droids</label>
         </div>
         <div class="col-auto">
-          <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="soulForge">
-          <label class="form-check-label" for="soulForge">Soul Forge Active</label>
-        </div>
-        <div class="col-auto">
           <input class="form-check-input ml-3 hell-sim-param" type="checkbox" id="soulAbsorption">
           <label class="form-check-label" for="soulAbsorption">Soul Absorption</label>
         </div>
@@ -418,6 +414,25 @@
             </div>
             <input class="form-control form-control-sm hell-sim-param" id="soulAttractors" value="0" type="number" style="text-align: right">
           </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Soul Forge</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="soulForge">
+              <option value=0 selected>None or Unpowered</option>
+              <option value=1>Powered, Unmanned</option>
+              <option value=2>Active</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group col-sm">
+          <h6 class="text-warning"><div class="col-auto" id="forgeSoldiers"></div></h6>
+        </div>
+        <div class="form-group col-sm">
         </div>
       </div>
     </div>

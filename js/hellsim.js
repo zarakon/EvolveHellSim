@@ -241,32 +241,15 @@ function SimResults(params, stats) {
             ",  patrol failures: " + stats.patrolFails +
             (stats.patrolFails ? " (avg " + (stats.patrolFailTicks * ticksPerHour / stats.patrolFails).toFixed(1) + " hrs)" : "") +
             "\n");
-    LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
-    LogResult(stats, "Soul gems per hour:   " +
-            "Patrols " + (stats.patrolGems / hours).toFixed(2) + ", " +
-            "Guns " + (stats.gunGems / hours).toFixed(2) + ", " +
-            "Forge " + (stats.forgeGems / hours).toFixed(2) + ", " +
-            "Total " + ((stats.patrolGems + stats.gunGems + stats.forgeGems) / hours).toFixed(2) +
-            "\n");
-    LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
-            ",  max: " + stats.maxPity +
-            ", avg per gem: " + (stats.totalPityPerGem / stats.patrolGems).toFixed(0) +
+    LogResult(stats, "Soul gems per hour - Patrols: " + (stats.patrolGems / hours).toFixed(2) +
+            ",  Guns: " + (stats.gunGems / hours).toFixed(2) +
+            ",  Forge: " + (stats.forgeGems / hours).toFixed(2) +
+            ",  Total: " + ((stats.patrolGems + stats.gunGems + stats.forgeGems) / hours).toFixed(2) +
             "\n");
     LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.patrolEncounters / stats.bloodWars).toFixed(3) +
             ",  skipped: " + (stats.skippedEncounters / (stats.skippedEncounters + stats.patrolEncounters) * 100).toFixed(2) + "%" +
-            "\n");
-    LogResult(stats, "Ambushes:    " + stats.ambushes +
-            ",  per hour: " + (stats.ambushes / hours).toFixed(1) +
-            ",  per bloodwar: " + (stats.ambushes / stats.bloodWars).toFixed(3) +
-            ",  per encounter: " + (stats.ambushes / stats.patrolEncounters).toFixed(3) +
-            "\n");
-    LogResult(stats, "Surges:      " + stats.surges +
-            ",  per hour: " + (stats.surges / hours).toFixed(3) +
-            "\n");
-    LogResult(stats, "Sieges:      " + stats.sieges +
-            ",  per hour: " + (stats.sieges / hours).toFixed(3) +
             "\n");
     LogResult(stats, "Pre-fight Threat   Avg: " + (stats.totalPreFightThreat / stats.bloodWars).toFixed(0) + 
             ",  min: " + stats.minPreFightThreat +
@@ -276,22 +259,14 @@ function SimResults(params, stats) {
             ",  min: " + stats.minPostFightThreat +
             ",  max: " + stats.maxPostFightThreat +
             "\n");
-    LogResult(stats, "Soldiers killed: " + stats.soldiersKilled +
-            ",  per hour: " + (stats.soldiersKilled / hours).toFixed(1) +
+    LogResult(stats, "Soldiers killed per hour: " + (stats.soldiersKilled / hours).toFixed(1));
+    if (params.revive) {
+        LogResult(stats,
+            ", after revives: " + ((stats.soldiersKilled - stats.soldiersRevived) / hours).toFixed(1)); 
+    }
+    LogResult(stats,
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
-            "\n");
-    if (params.revive) {
-        LogResult(stats, "Soldiers revived: " + stats.soldiersRevived +
-                ",  per hour: " + (stats.soldiersRevived / hours).toFixed(1) +
-                ",  per bloodwar: " + (stats.soldiersRevived / stats.bloodWars).toFixed(3) +
-                "\n");
-    }
-    LogResult(stats, "Soldiers trained: " + stats.soldiersTrained +
-            ",  per hour: " + (stats.soldiersTrained / hours).toFixed(1) +
-            "\n");
-    LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
-            ",  max " + stats.maxWounded + " of " + maxSoldiers +
             "\n");
     LogResult(stats, "Patrols survived (of " + params.patrols +
             ")  avg: " + (stats.totalPatrolsSurvived / stats.simsDone).toFixed(1) +
@@ -302,10 +277,45 @@ function SimResults(params, stats) {
             " (" + ((stats.totalSurveyors / stats.ticks) / params.surveyors * 100).toFixed(1) + "%)" +
             ",  min " + stats.minSurveyors + " of " + params.surveyors +
             "\n");
+    LogResult(stats, "Hunting Garrison avg: " + (stats.totalGarrison / stats.ticks).toFixed(1) +
+            " of " + params.garrison +
+            " (" + ((stats.totalGarrison / stats.ticks) / params.garrison * 100).toFixed(1) + "%)" +
+            "\n");
     LogResult(stats, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
             ",  min " + stats.minWalls +
             "\n");
     
+    if (params.extraResults) {
+        LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
+        LogResult(stats, "Ambushes:    " + stats.ambushes +
+            ",  per hour: " + (stats.ambushes / hours).toFixed(1) +
+            ",  per bloodwar: " + (stats.ambushes / stats.bloodWars).toFixed(3) +
+            ",  per encounter: " + (stats.ambushes / stats.patrolEncounters).toFixed(3) +
+            "\n");
+        LogResult(stats, "Surges:      " + stats.surges +
+            ",  per hour: " + (stats.surges / hours).toFixed(3) +
+            "\n");
+        LogResult(stats, "Sieges:      " + stats.sieges +
+            ",  per hour: " + (stats.sieges / hours).toFixed(3) +
+            "\n");
+        LogResult(stats, "Soldiers trained: " + stats.soldiersTrained +
+            ",  per hour: " + (stats.soldiersTrained / hours).toFixed(1) +
+            "\n");
+        LogResult(stats, "Wounded avg: " + (stats.totalWounded / stats.bloodWars).toFixed(1) +
+            ",  max " + stats.maxWounded + " of " + maxSoldiers +
+            "\n");
+        LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
+            ",  max: " + stats.maxPity +
+            ", avg per gem: " + (stats.totalPityPerGem / stats.patrolGems).toFixed(0) +
+            "\n");
+        LogResult(stats, "Demon kills per hour: " +
+            (stats.kills / hours).toFixed(0) +
+            "\n");
+        LogResult(stats, "Soul Forge on-time: " + ((stats.forgeOn / stats.bloodWars) * 100).toFixed(1) + "%" +
+            ", souls per hour: " + (stats.forgeSouls / hours).toFixed(0) +
+            "\n");
+    }
+
     $('#result')[0].scrollIntoView(true);
     $('#result')[0].value = stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);
@@ -648,7 +658,7 @@ function BloodWar(params, sim, stats) {
         forgeSouls += forgeKills;
         stats.kills += forgeKills;
         if (Rand(0, 5000) == 0) {
-            stats.gunGems++;
+            stats.forgeGems++;
         }
     
         stats.forgeSouls += forgeSouls;

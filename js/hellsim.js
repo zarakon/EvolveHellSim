@@ -1015,7 +1015,9 @@ function OnChange() {
     if (params.cautious) {
         ratingStr += "~ ";
     }    
-    if (params.droids >= params.patrols) {
+    if (params.patrols == 0) {
+        ratingStr += patrolRating;
+    } else if (params.droids >= params.patrols) {
         ratingStr += patrolRatingDroids;
     } else if (params.droids > 0) {
         ratingStr += patrolRating + " / " + patrolRatingDroids;

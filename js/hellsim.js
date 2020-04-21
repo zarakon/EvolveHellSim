@@ -395,7 +395,8 @@ function BloodWar(params, sim, stats) {
     }
     
     /* Gem Chance */
-    let gemOdds = 10000 - sim.pity;
+    let gemOdds = params.technophobe ? 9000 : 10000;
+    gemOdds -= sim.pity;
     if (params.darkEnergy >= 1) {
         gemOdds -= Math.round(Math.log2(params.darkEnergy) * 2);
     }
@@ -637,6 +638,7 @@ function BloodWar(params, sim, stats) {
 
     /* Gun Emplacements */
     if (forgeOperating) {
+        let gemOdds = params.technophobe ? 6750 : 7500;
         let gunKills = 0;
         if (params.advGuns) {
             gunKills = params.guns * Rand(20, 45);
@@ -646,7 +648,7 @@ function BloodWar(params, sim, stats) {
         forgeSouls += gunKills;
         stats.kills += gunKills;
         for (let i = 0; i < params.guns; i++) {
-            if (Rand(0, 7500) == 0) {
+            if (Rand(0, gemOdds) == 0) {
                 stats.gunGems++;
             }
         }
@@ -654,10 +656,11 @@ function BloodWar(params, sim, stats) {
     
     /* Soul Forge */
     if (forgeOperating) {
+        let gemOdds = params.technophobe ? 4500 : 5000;
         let forgeKills = Rand(25, 150);
         forgeSouls += forgeKills;
         stats.kills += forgeKills;
-        if (Rand(0, 5000) == 0) {
+        if (Rand(0, gemOdds) == 0) {
             stats.forgeGems++;
         }
     
@@ -1055,6 +1058,9 @@ function OnChange() {
         $('#forgeSoldiers').html("0 / " + forgeSoldiers + " soldiers");
     }
     
+    /* Round dark energy to 3 places */
+    $('#darkEnergy')[0].value = params.darkEnergy = params.darkEnergy.toFixed(3);
+    
     /* Save params to localStorage */
     window.localStorage.setItem('hellSimParams', JSON.stringify(params));
 }
@@ -1195,6 +1201,7 @@ function ConvertSave(save) {
     $('#slaver')[0].checked = save.race['slaver'] ? true : false;
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
+    $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     
     $('#zealotry')[0].checked = save.tech['fanaticism'] && save.tech['fanaticism'] >= 4 ? true : false;
     $('#vrTraining')[0].checked = save.tech['boot_camp'] && save.tech['boot_camp'] >= 2 ? true : false;
@@ -1214,7 +1221,9 @@ function ConvertSave(save) {
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
     $('#fibroblast')[0].value = save.race['fibroblast'] || 0;
-    $('#darkEnergy')[0].value = save.race.universe == 'evil' ? save.race.Dark.count : 0;
+    let dark = save.race.Dark.count;
+    dark *= 1 + (save.race.Harmony.count * 0.01);
+    $('#darkEnergy')[0].value = save.race.universe == 'evil' ? dark.toFixed(3) : 0;
     
     if (save.portal && save.portal.fortress) {
         let patrols = save.portal.fortress.patrols;

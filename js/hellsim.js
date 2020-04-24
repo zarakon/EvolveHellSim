@@ -843,8 +843,7 @@ function TrainingTime(params) {
     bootCampBonus = params.vrTraining == true ? 0.08 : 0.05;
     
     /* rate is percentage points per tick */
-    // INTENTIONAL BUG, training rate between normal and diverse is backwards in v0.8.11
-    rate = params.diverse ? 2.5 : 2.0;
+    rate = params.diverse ? 2.0 : 2.5;
     rate *= 1 + params.bootCamps * bootCampBonus;
     if (params.brute) {
         rate += 2.5;

@@ -1059,7 +1059,7 @@ function OnChange() {
     }
     
     /* Round dark energy to 3 places */
-    $('#darkEnergy')[0].value = params.darkEnergy = params.darkEnergy.toFixed(3);
+    $('#darkEnergy')[0].value = params.darkEnergy = +params.darkEnergy.toFixed(3);
     
     /* Save params to localStorage */
     window.localStorage.setItem('hellSimParams', JSON.stringify(params));

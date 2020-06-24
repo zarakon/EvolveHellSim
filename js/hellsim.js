@@ -640,7 +640,7 @@ function BloodWar(params, sim, stats) {
     if (forgeOperating) {
         let gemOdds = params.technophobe ? 6750 : 7500;
         if (params.soulLink) {
-            gemOdds *= 0.94 ** params.soulAttractors;
+            gemOdds = Math.round(gemOdds * 0.94 ** params.soulAttractors);
         }
         let gunKills = 0;
         if (params.advGuns) {
@@ -672,7 +672,7 @@ function BloodWar(params, sim, stats) {
         
         let cap = params.soulAbsorption ? 750000 : 1000000;
         if (params.soulLink) {
-            cap *= 0.97 ** params.soulAttractors;
+            cap = Math.round(cap * 0.97 ** params.soulAttractors);
         }
         if (sim.forgeSouls > cap) {
             stats.forgeGems++;

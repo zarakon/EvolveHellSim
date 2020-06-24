@@ -633,17 +633,20 @@ function BloodWar(params, sim, stats) {
 
     /* Soul Attractors */
     if (forgeOperating) {
-        forgeSouls += params.soulAttractors * Rand(25, 75);
+        forgeSouls += params.soulAttractors * Rand(40, 120);
     }
 
     /* Gun Emplacements */
     if (forgeOperating) {
         let gemOdds = params.technophobe ? 6750 : 7500;
+        if (params.soulLink) {
+            gemOdds *= 0.94 ** params.soulAttractors;
+        }
         let gunKills = 0;
         if (params.advGuns) {
-            gunKills = params.guns * Rand(20, 45);
+            gunKills = params.guns * Rand(35, 75);
         } else {
-            gunKills = params.guns * Rand(10, 25);
+            gunKills = params.guns * Rand(20, 40);
         }
         forgeSouls += gunKills;
         stats.kills += gunKills;
@@ -668,6 +671,9 @@ function BloodWar(params, sim, stats) {
         sim.forgeSouls += forgeSouls;
         
         let cap = params.soulAbsorption ? 750000 : 1000000;
+        if (params.soulLink) {
+            cap *= 0.97 ** params.soulAttractors;
+        }
         if (sim.forgeSouls > cap) {
             stats.forgeGems++;
             sim.forgeSouls = 0;
@@ -1210,6 +1216,7 @@ function ConvertSave(save) {
     $('#advDrones')[0].checked = save.tech['portal'] && save.tech['portal'] >= 7 ? true : false;
     $('#enhDroids')[0].checked = save.tech['hdroid'] && save.tech['hdroid'] >= 1 ? true : false;
     $('#soulAbsorption')[0].checked = save.tech['hell_pit'] && save.tech['hell_pit'] >= 6 ? true : false;
+    $('#soulLink')[0].checked = save.tech['hell_pit'] && save.tech['hell_pit'] >= 7 ? true : false;
     $('#advGuns')[0].checked = save.tech['hell_gun'] && save.tech['hell_gun'] >= 2 ? true : false;
 
     $('#weaponTech')[0].value = save.tech['military'] ? (save.tech['military'] >= 5 ? save.tech['military'] - 1 : save.tech['military']) : 0;

@@ -25,6 +25,7 @@ function Simulate() {
         patrolGems: 0,
         forgeGems: 0,
         gunGems: 0,
+        gateGems: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
         maxPreFightThreat: params.threat,
@@ -244,7 +245,8 @@ function SimResults(params, stats) {
     LogResult(stats, "Soul gems per hour - Patrols: " + (stats.patrolGems / hours).toFixed(2) +
             ",  Guns: " + (stats.gunGems / hours).toFixed(2) +
             ",  Forge: " + (stats.forgeGems / hours).toFixed(2) +
-            ",  Total: " + ((stats.patrolGems + stats.gunGems + stats.forgeGems) / hours).toFixed(2) +
+            ",  Gate Turrets: " + (stats.gateGems / hours).toFixed(2) +
+            ",  Total: " + ((stats.patrolGems + stats.gunGems + stats.forgeGems + stats.gateGems) / hours).toFixed(2) +
             "\n");
     LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
@@ -633,7 +635,7 @@ function BloodWar(params, sim, stats) {
 
     /* Soul Attractors */
     if (forgeOperating) {
-        forgeSouls += params.soulAttractors * Rand(40, 120);
+        forgeSouls += params.soulAttractors * ((params.soulTrap * 5) + Rand(40, 120));
     }
 
     /* Gun Emplacements */
@@ -653,6 +655,24 @@ function BloodWar(params, sim, stats) {
         for (let i = 0; i < params.guns; i++) {
             if (Rand(0, gemOdds) == 0) {
                 stats.gunGems++;
+            }
+        }
+    }
+
+    /* Gate Turrets */
+    if (forgeOperating) {
+        let gemOdds = params.technophobe ? 2700 : 3000;
+        let gateKills = 0;
+        if (params.advGuns) {
+            gateKills = params.gateTurrets * Rand(65, 100);
+        } else {
+            gateKills = params.gateTurrets * Rand(40, 60);
+        }
+        forgeSouls += gateKills;
+        stats.kills += gateKills;
+        for (let i = 0; i < params.gateTurrets; i++) {
+            if (Rand(0, gemOdds) == 0) {
+                stats.gateGems++;
             }
         }
     }
@@ -847,6 +867,7 @@ function TrainingTime(params) {
     var bootCampBonus;
 
     bootCampBonus = params.vrTraining == true ? 0.08 : 0.05;
+    bootCampBonus += params.bloodLust * 0.002;
     
     /* rate is percentage points per tick */
     rate = params.diverse ? 2.0 : 2.5;
@@ -903,16 +924,27 @@ function ArmyRating(params, sim, size, wound) {
     if (params.fiery) {
         rating *= 1.65;
     }
+    if (params.sticky) {
+        rating *= 1.15;
+    }
     if (params.pathetic) {
         rating *= 0.75;
     }
+    if (params.holy) {
+        rating *= 1.5;
+    }
     if (params.rage) {
         rating *= 1.05;
+    }
+    if (params.magic) {
+        rating *= 0.75;
     }
 
     rating *= 1 + (params.tactical * 0.05);
     
     rating *= 1 + (params.temples * 0.01);
+    
+    rating *= 1 + (params.warRitual / (params.warRitual + 75));
     
     if (params.parasite) {
         if (size == 1) {
@@ -1195,8 +1227,10 @@ function ConvertSave(save) {
     $('#fiery')[0].checked = save.race['fiery'] ? true : false;
     $('#ghostly')[0].checked = save.race['ghostly'] ? true : false;
     $('#hivemind')[0].checked = save.race['hivemind'] ? true : false;
+    $('#holy')[0].checked = save.race['holy'] ? true : false;
     $('#hyper')[0].checked = save.race['hyper'] ? true : false;
     $('#kindling')[0].checked = save.race['kindling_kindred'] ? true : false;
+    $('#magic')[0].checked = save.race.universe == 'magic' ? true : false;
     $('#parasite')[0].checked = save.race['parasite'] ? true : false;
     $('#pathetic')[0].checked = save.race['pathetic'] ? true : false;
     $('#puny')[0].checked = save.race['puny'] ? true : false;
@@ -1207,6 +1241,7 @@ function ConvertSave(save) {
     $('#slaver')[0].checked = save.race['slaver'] ? true : false;
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
+    $('#sticky')[0].checked = save.race['sticky'] ? true : false;
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     
     $('#zealotry')[0].checked = save.tech['fanaticism'] && save.tech['fanaticism'] >= 4 ? true : false;
@@ -1231,6 +1266,9 @@ function ConvertSave(save) {
     let dark = save.race.Dark.count;
     dark *= 1 + (save.race.Harmony.count * 0.01);
     $('#darkEnergy')[0].value = save.race.universe == 'evil' ? dark.toFixed(3) : 0;
+    $('#warRitual')[0].value = save.race['casting'] ? save.race.casting.army : 0;
+    $('#bloodLust')[0].value = save['blood'] && save.blood['lust'] ? save.blood.lust : 0;
+    $('#soulTrap')[0].value = save['blood'] && save.blood['attract'] ? save.blood.attract : 0;
     
     if (save.portal && save.portal.fortress) {
         let patrols = save.portal.fortress.patrols;
@@ -1256,6 +1294,7 @@ function ConvertSave(save) {
         $('#droids')[0].value = save.portal.war_droid ? save.portal.war_droid.on : 0;
         $('#guns')[0].value = save.portal.gun_emplacement ? save.portal.gun_emplacement.on : 0;
         $('#soulAttractors')[0].value = save.portal.soul_attractor ? save.portal.soul_attractor.on : 0;
+        $('#gateTurrets')[0].value = save.portal.gate_turret ? save.portal.gate_turret.on : 0;
         $('#soulForge')[0].value = 0; /* Update later */
     } else {
         $('#patrols')[0].value = 0;
@@ -1270,6 +1309,7 @@ function ConvertSave(save) {
         $('#droids')[0].value = 0;
         $('#guns')[0].value = 0;
         $('#soulAttractors')[0].value = 0;
+        $('#gateTurrets')[0].value = 0;
         $('#soulForge')[0].value = 0;
     }
 

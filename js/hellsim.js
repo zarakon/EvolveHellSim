@@ -704,12 +704,12 @@ function BloodWar(params, sim, stats) {
 function Events(params, sim, stats) {
     /* A minimum of 4 events will always be possible:
         Inspiration, Raid/Terrorist, Demon Influx, Ruins
-       The Fire event is possible if not kindred kindling, aquatic, or evil
+       The Fire event is possible if not kindred kindling, smoldering, aquatic, or evil
        Slaver trait adds three more possible events for slave deaths
     */    
     let numEvents = 4;
     
-    if (!(params.kindling || params.evil || params.aquatic)) {
+    if (!(params.kindling || params.smoldering || params.evil || params.aquatic)) {
         numEvents++;
     }
     if (params.slaver) {
@@ -872,6 +872,9 @@ function TrainingTime(params) {
     /* rate is percentage points per tick */
     rate = params.diverse ? 2.0 : 2.5;
     rate *= 1 + params.bootCamps * bootCampBonus;
+    if (params.beast) {
+        rate *= 1.2;
+    }
     if (params.brute) {
         rate += 2.5;
     }
@@ -901,7 +904,7 @@ function ArmyRating(params, sim, size, wound) {
         rating *= 0.9;
     }
     if (params.claws) {
-        rating *= 1.2;
+        rating *= 1.25;
     }
     if (params.chameleon) {
         rating *= 1.2;
@@ -919,7 +922,7 @@ function ArmyRating(params, sim, size, wound) {
         }
     }
     if (params.apexPredator) {
-        rating *= 1.25;
+        rating *= 1.3;
     }
     if (params.fiery) {
         rating *= 1.65;
@@ -1215,6 +1218,7 @@ function ConvertSave(save) {
     $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#armored')[0].checked = save.race['armored'] ? true : false;
+    $('#beast')[0].checked = save.race['beast'] ? true : false;
     $('#blurry')[0].checked = save.race['blurry'] ? true : false;
     $('#brute')[0].checked = save.race['brute'] ? true : false;
     $('#cannibal')[0].checked = save.race['cannibalize'] ? true : false;
@@ -1241,6 +1245,7 @@ function ConvertSave(save) {
     $('#slaver')[0].checked = save.race['slaver'] ? true : false;
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
+    $('#smoldering')[0].checked = save.race['smoldering'] ? true : false;
     $('#sticky')[0].checked = save.race['sticky'] ? true : false;
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     

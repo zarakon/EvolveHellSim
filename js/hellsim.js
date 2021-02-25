@@ -1281,7 +1281,10 @@ function ConvertSave(save) {
         var defenders;
         var garrison;
         if (save.portal.fortress.assigned) {
-            defenders = save.portal.fortress.assigned - (patrols * patrolSize) - save.portal.guard_post.on;
+            defenders = save.portal.fortress.assigned - (patrols * patrolSize);
+			if (save.portal['guard_post']) {
+				defenders -= save.portal.guard_post.on;
+			}
             garrison = save.civic.garrison.max - save.civic.garrison.crew - save.portal.fortress.assigned;
         } else {
             defenders = 0;

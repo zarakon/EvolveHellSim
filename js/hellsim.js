@@ -942,6 +942,9 @@ function ArmyRating(params, sim, size, wound) {
     if (params.magic) {
         rating *= 0.75;
     }
+	if (params.banana) {
+		rating *= 0.8;
+	}
 
     rating *= 1 + (params.tactical * 0.05);
     
@@ -1218,6 +1221,7 @@ function ConvertSave(save) {
     $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#armored')[0].checked = save.race['armored'] ? true : false;
+    $('#banana')[0].checked = save.race['banana'] ? true : false;
     $('#beast')[0].checked = save.race['beast'] ? true : false;
     $('#blurry')[0].checked = save.race['blurry'] ? true : false;
     $('#brute')[0].checked = save.race['brute'] ? true : false;

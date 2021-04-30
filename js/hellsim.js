@@ -133,6 +133,7 @@ function SimRun(params, sim, stats) {
         };
         if (params.soulForge == 2) {
             let forgeSoldiers = ForgeSoldiers(params);
+            sim.soldiers += forgeSoldiers;
             sim.maxSoldiers += forgeSoldiers;
             sim.hellSoldiers += forgeSoldiers;
             sim.maxHellSoldiers += forgeSoldiers;

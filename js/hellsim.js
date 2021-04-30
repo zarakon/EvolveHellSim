@@ -63,10 +63,10 @@ function Simulate() {
         kills: 0,
         forgeOn: 0,
         forgeSouls: 0,
-		mercCosts: 0,
-		mercsHired: 0,
-		mercMaxPrice: 0,
-		minMoney: params.moneyCap,
+        mercCosts: 0,
+        mercsHired: 0,
+        mercMaxPrice: 0,
+        minMoney: params.moneyCap,
     };
     
     stats.tickLength = 250;
@@ -126,9 +126,9 @@ function SimRun(params, sim, stats) {
             pity: 0,
             eventOdds: 999,
             forgeSouls: 0,
-			money: params.moneyCap,
-			mercCounter: 0,
-			clickerCounter: 0,
+            money: params.moneyCap,
+            mercCounter: 0,
+            clickerCounter: 0,
             done: false,
         };
         if (params.soulForge == 2) {
@@ -166,25 +166,25 @@ function SimRun(params, sim, stats) {
             
             /* Random events, which could mean a demon surge influx */
             Events(params, sim, stats);
-			
-			/* 1/4 chance to reduce merc counter */
-			if (sim.mercCounter > 0) {
-				if (Rand(0,3) == 0) {
-					sim.mercCounter--;
-				}
-			}
+            
+            /* 1/4 chance to reduce merc counter */
+            if (sim.mercCounter > 0) {
+                if (Rand(0,3) == 0) {
+                    sim.mercCounter--;
+                }
+            }
         }
         
         if (sim.soldiers < sim.maxSoldiers) {
             TrainSoldiers(params, sim, stats);
         }
-		sim.money += params.moneyIncome;
-		if (sim.money > params.moneyCap) {
-			sim.money = params.moneyCap;
-		}
-		if (params.hireMercs != 0) {
-			HireMercs(params, sim, stats);
-		}
+        sim.money += params.moneyIncome;
+        if (sim.money > params.moneyCap) {
+            sim.money = params.moneyCap;
+        }
+        if (params.hireMercs != 0) {
+            HireMercs(params, sim, stats);
+        }
         stats.totalGarrison += (sim.soldiers - sim.hellSoldiers);
         
         stats.totalSurveyors += sim.surveyors;
@@ -293,14 +293,14 @@ function SimResults(params, stats) {
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
     if (params.hireMercs != 0) {
-		LogResult(stats,
-		    "Mercs hired per hour: " + (stats.mercsHired / hours).toFixed(1) +
-			", avg cost: " + (stats.mercCosts / stats.mercsHired).toFixed(3) +
-			", max cost: " + stats.mercMaxPrice.toFixed(3) +
-			", min money " + stats.minMoney.toFixed(2) +
-			"\n");
-	}
-	LogResult(stats, "Patrols survived (of " + params.patrols +
+        LogResult(stats,
+            "Mercs hired per hour: " + (stats.mercsHired / hours).toFixed(1) +
+            ", avg cost: " + (stats.mercCosts / stats.mercsHired).toFixed(3) +
+            ", max cost: " + stats.mercMaxPrice.toFixed(3) +
+            ", min money " + stats.minMoney.toFixed(2) +
+            "\n");
+    }
+    LogResult(stats, "Patrols survived (of " + params.patrols +
             ")  avg: " + (stats.totalPatrolsSurvived / stats.simsDone).toFixed(1) +
             ",  min: " + stats.minPatrolsSurvived +
             ",  max: " + stats.maxPatrolsSurvived +
@@ -802,92 +802,92 @@ function TrainSoldiers(params, sim, stats) {
 }
 
 function HireMercs(params, sim, stats) {
-	
-	switch (params.hireMercs) {
-		case 0: return;
-		case 1: /* Volch Script */
-			while (MercScriptReqsMet(params, sim, stats) == true) {
-				var price = MercPrice(sim, stats)
-				sim.money -= price;
-				sim.soldiers++;
-				if (sim.hellSoldiers < sim.maxHellSoldiers) {
-					sim.hellSoldiers++;
-				}
-				stats.mercCosts += price;
-				sim.mercCounter++;
-				stats.mercsHired++;
-			}
-			break;
-		case 2: /* Autoclick */
-			sim.clickerCounter++;
-			if ((sim.clickerCounter * stats.tickLength) / 1000 >= params.clickerInterval) {
-				if (sim.soldiers < sim.maxSoldiers) {
-					var price = MercPrice(sim, stats);
-					if (price <= sim.money) {
-						sim.money -= price;
-						sim.soldiers++;
-						if (sim.hellSoldiers < sim.maxHellSoldiers) {
-							sim.hellSoldiers++;
-						}
-						stats.mercCosts += price;
-						sim.mercCounter++;
-						stats.mercsHired++;
-					}
-				}
-				sim.clickerCounter = 0;
-			}
-			break;
-		default: break;
-	}
-	
-	if (sim.money < stats.minMoney) {
-		stats.minMoney = sim.money;
-	}
+    
+    switch (params.hireMercs) {
+        case 0: return;
+        case 1: /* Volch Script */
+            while (MercScriptReqsMet(params, sim, stats) == true) {
+                var price = MercPrice(sim, stats)
+                sim.money -= price;
+                sim.soldiers++;
+                if (sim.hellSoldiers < sim.maxHellSoldiers) {
+                    sim.hellSoldiers++;
+                }
+                stats.mercCosts += price;
+                sim.mercCounter++;
+                stats.mercsHired++;
+            }
+            break;
+        case 2: /* Autoclick */
+            sim.clickerCounter++;
+            if ((sim.clickerCounter * stats.tickLength) / 1000 >= params.clickerInterval) {
+                if (sim.soldiers < sim.maxSoldiers) {
+                    var price = MercPrice(sim, stats);
+                    if (price <= sim.money) {
+                        sim.money -= price;
+                        sim.soldiers++;
+                        if (sim.hellSoldiers < sim.maxHellSoldiers) {
+                            sim.hellSoldiers++;
+                        }
+                        stats.mercCosts += price;
+                        sim.mercCounter++;
+                        stats.mercsHired++;
+                    }
+                }
+                sim.clickerCounter = 0;
+            }
+            break;
+        default: break;
+    }
+    
+    if (sim.money < stats.minMoney) {
+        stats.minMoney = sim.money;
+    }
 }
 
 function MercScriptReqsMet(params, sim, stats) {
-	var price = MercPrice(sim, stats);	
-	var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
-	var incomeThreshold = params.income * params.scriptIncome;
-	
-	if (price > sim.money) {
-		return false;
-	}
-	
-	if (sim.soldiers >= sim.maxSoldiers) {
-		return false;
-	}
-	
-	if (sim.money > moneyThreshold) {
-		return true;
-	}
-	
-	if (price  <= incomeThreshold) {
-		return true;
-	}
+    var price = MercPrice(sim, stats);  
+    var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
+    var incomeThreshold = params.income * params.scriptIncome;
+    
+    if (price > sim.money) {
+        return false;
+    }
+    
+    if (sim.soldiers >= sim.maxSoldiers) {
+        return false;
+    }
+    
+    if (sim.money > moneyThreshold) {
+        return true;
+    }
+    
+    if (price  <= incomeThreshold) {
+        return true;
+    }
 }
 
 function MercPrice(sim, stats) {
-	var garrison = sim.soldiers - sim.hellSoldiers;
-	var price = Math.round((1.24 ** garrison) * 75) - 50;
-	if (price > 25000){
-		price = 25000;
-	}
-	if (sim.mercCounter > 0){
-		price *= 1.1 ** sim.mercCounter;
-	}
-	if (params.brute){
-		price *= 0.5;
-	}
-	
-	/* Convert to millions */
-	price /= 1000000.0;
-	
-	if (price > stats.mercMaxPrice) {
-		stats.mercMaxPrice = price;
-	}
-	
-	return price;
+    var garrison = sim.soldiers - sim.hellSoldiers;
+    var price = Math.round((1.24 ** garrison) * 75) - 50;
+    if (price > 25000){
+        price = 25000;
+    }
+    if (sim.mercCounter > 0){
+        price *= 1.1 ** sim.mercCounter;
+    }
+    if (params.brute){
+        price *= 0.5;
+    }
+    
+    /* Convert to millions */
+    price /= 1000000.0;
+    
+    if (price > stats.mercMaxPrice) {
+        stats.mercMaxPrice = price;
+    }
+    
+    return price;
 }
 
 function HealSoldiers(params, sim, stats) {
@@ -1061,9 +1061,9 @@ function ArmyRating(params, sim, size, wound) {
     if (params.magic) {
         rating *= 0.75;
     }
-	if (params.banana) {
-		rating *= 0.8;
-	}
+    if (params.banana) {
+        rating *= 0.8;
+    }
 
     rating *= 1 + (params.tactical * 0.05);
     
@@ -1212,65 +1212,65 @@ function OnChange() {
     }
     let trainingRate = 3600 / trainingTime;
 
-	if (params.hireMercs == 1) {
-		$('#moneyIncomeDiv')[0].hidden = false;
-		$('#moneyCapDiv')[0].hidden = false;
-		$('#scriptCapThresholdDiv')[0].hidden = false;
-		$('#scriptIncomeDiv')[0].hidden = false;
-		$('#clickerIntervalDiv')[0].hidden = true;
-		$('#mercsBlank1')[0].hidden = true;
-		$('#mercsBlank2')[0].hidden = true;
-		$('#mercsBlank3')[0].hidden = true;
-		$('#mercsBlank4')[0].hidden = true;
-		$('#mercsBlank5')[0].hidden = false;
-		var mercRate = 240;
-		if (params.hyper) {
-			mercRate /= 0.95;
-		}
-		if (params.slow) {
-			mercRate /= 1.1;
-		}
-		trainingRate += mercRate;
-		trainingTime = 3600 / trainingRate;
+    if (params.hireMercs == 1) {
+        $('#moneyIncomeDiv')[0].hidden = false;
+        $('#moneyCapDiv')[0].hidden = false;
+        $('#scriptCapThresholdDiv')[0].hidden = false;
+        $('#scriptIncomeDiv')[0].hidden = false;
+        $('#clickerIntervalDiv')[0].hidden = true;
+        $('#mercsBlank1')[0].hidden = true;
+        $('#mercsBlank2')[0].hidden = true;
+        $('#mercsBlank3')[0].hidden = true;
+        $('#mercsBlank4')[0].hidden = true;
+        $('#mercsBlank5')[0].hidden = false;
+        var mercRate = 240;
+        if (params.hyper) {
+            mercRate /= 0.95;
+        }
+        if (params.slow) {
+            mercRate /= 1.1;
+        }
+        trainingRate += mercRate;
+        trainingTime = 3600 / trainingRate;
 
-	} else if (params.hireMercs == 2) {
-		$('#moneyIncomeDiv')[0].hidden = false;
-		$('#moneyCapDiv')[0].hidden = false;
-		$('#scriptCapThresholdDiv')[0].hidden = true;
-		$('#scriptIncomeDiv')[0].hidden = true;
-		$('#clickerIntervalDiv')[0].hidden = false;
-		$('#mercsBlank1')[0].hidden = true;
-		$('#mercsBlank2')[0].hidden = true;
-		$('#mercsBlank3')[0].hidden = true;
-		$('#mercsBlank4')[0].hidden = false;
-		$('#mercsBlank5')[0].hidden = false;
-		var mercRate;
-		if (params.clickerInterval > 15) {
-			mercRate = (3600 / params.clickerInterval);
-		} else {
-			mercRate = 240;
-		}
-		if (params.hyper) {
-			mercRate /= 0.95;
-		}
-		if (params.slow) {
-			mercRate /= 1.1;
-		}
-		trainingRate += mercRate;
-		trainingTime = 3600 / trainingRate;
+    } else if (params.hireMercs == 2) {
+        $('#moneyIncomeDiv')[0].hidden = false;
+        $('#moneyCapDiv')[0].hidden = false;
+        $('#scriptCapThresholdDiv')[0].hidden = true;
+        $('#scriptIncomeDiv')[0].hidden = true;
+        $('#clickerIntervalDiv')[0].hidden = false;
+        $('#mercsBlank1')[0].hidden = true;
+        $('#mercsBlank2')[0].hidden = true;
+        $('#mercsBlank3')[0].hidden = true;
+        $('#mercsBlank4')[0].hidden = false;
+        $('#mercsBlank5')[0].hidden = false;
+        var mercRate;
+        if (params.clickerInterval > 15) {
+            mercRate = (3600 / params.clickerInterval);
+        } else {
+            mercRate = 240;
+        }
+        if (params.hyper) {
+            mercRate /= 0.95;
+        }
+        if (params.slow) {
+            mercRate /= 1.1;
+        }
+        trainingRate += mercRate;
+        trainingTime = 3600 / trainingRate;
 
-	} else {
-		$('#moneyIncomeDiv')[0].hidden = true;
-		$('#moneyCapDiv')[0].hidden = true;
-		$('#scriptCapThresholdDiv')[0].hidden = true;
-		$('#scriptIncomeDiv')[0].hidden = true;
-		$('#clickerIntervalDiv')[0].hidden = true;
-		$('#mercsBlank1')[0].hidden = false;
-		$('#mercsBlank2')[0].hidden = false;
-		$('#mercsBlank3')[0].hidden = false;
-		$('#mercsBlank4')[0].hidden = false;
-		$('#mercsBlank5')[0].hidden = false;
-	} 
+    } else {
+        $('#moneyIncomeDiv')[0].hidden = true;
+        $('#moneyCapDiv')[0].hidden = true;
+        $('#scriptCapThresholdDiv')[0].hidden = true;
+        $('#scriptIncomeDiv')[0].hidden = true;
+        $('#clickerIntervalDiv')[0].hidden = true;
+        $('#mercsBlank1')[0].hidden = false;
+        $('#mercsBlank2')[0].hidden = false;
+        $('#mercsBlank3')[0].hidden = false;
+        $('#mercsBlank4')[0].hidden = false;
+        $('#mercsBlank5')[0].hidden = false;
+    } 
 
     $('#trainingRate').html(trainingTime.toFixed(2) + "sec&nbsp;&nbsp;&nbsp;" + trainingRate.toFixed(1) + "/hour");
     
@@ -1466,9 +1466,9 @@ function ConvertSave(save) {
         var garrison;
         if (save.portal.fortress.assigned) {
             defenders = save.portal.fortress.assigned - (patrols * patrolSize);
-			if (save.portal['guard_post']) {
-				defenders -= save.portal.guard_post.on;
-			}
+            if (save.portal['guard_post']) {
+                defenders -= save.portal.guard_post.on;
+            }
             garrison = save.civic.garrison.max - save.civic.garrison.crew - save.portal.fortress.assigned;
         } else {
             defenders = 0;

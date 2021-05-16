@@ -178,7 +178,7 @@ function SimRun(params, sim, stats) {
         if (sim.soldiers < sim.maxSoldiers) {
             TrainSoldiers(params, sim, stats);
         }
-        sim.money += params.moneyIncome;
+        sim.money += params.moneyIncome * (stats.tickLength / 1000);
         if (sim.money > params.moneyCap) {
             sim.money = params.moneyCap;
         }
@@ -848,7 +848,7 @@ function HireMercs(params, sim, stats) {
 function MercScriptReqsMet(params, sim, stats) {
     var price = MercPrice(sim, stats);  
     var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
-    var incomeThreshold = params.income * params.scriptIncome;
+    var incomeThreshold = params.moneyIncome * params.scriptIncome;
     
     if (price > sim.money) {
         return false;
@@ -1458,6 +1458,9 @@ function ConvertSave(save) {
     $('#warRitual')[0].value = save.race['casting'] ? save.race.casting.army : 0;
     $('#bloodLust')[0].value = save['blood'] && save.blood['lust'] ? save.blood.lust : 0;
     $('#soulTrap')[0].value = save['blood'] && save.blood['attract'] ? save.blood.attract : 0;
+
+    $('#moneyCap')[0].value = save.resource['Money'] ? (save.resource.Money.max / 1000000).toFixed(2) : 0;
+    $('#moneyIncome')[0].value = save.resource['Money'] ? (save.resource.Money.diff / 1000000).toFixed(2) : 0;
     
     if (save.portal && save.portal.fortress) {
         let patrols = save.portal.fortress.patrols;

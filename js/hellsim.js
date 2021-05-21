@@ -129,6 +129,7 @@ function SimRun(params, sim, stats) {
             money: params.moneyCap,
             mercCounter: 0,
             clickerCounter: 0,
+            lastEvent: -1,
             done: false,
         };
         if (params.soulForge == 2) {
@@ -731,24 +732,35 @@ function BloodWar(params, sim, stats) {
     }
 }
 
-function Events(params, sim, stats) {
-    /* A minimum of 4 events will always be possible:
-        Inspiration, Raid/Terrorist, Demon Influx, Ruins
-       The Fire event is possible if not kindred kindling, smoldering, aquatic, or evil
-       Slaver trait adds three more possible events for slave deaths
-    */    
-    let numEvents = 4;
-    
-    if (!(params.kindling || params.smoldering || params.evil || params.aquatic)) {
-        numEvents++;
-    }
-    if (params.slaver) {
-        numEvents += 3;
-    }
-    
+function Events(params, sim, stats) {    
     if (Rand(0, sim.eventOdds) == 0) {
-        let event = Rand(0, numEvents);
-        if (event == 0) {
+        let events = [
+            "surge",
+            "terrorist",
+            "ruins",
+            "inspiration"
+        ];
+        
+        if (!params.kindling) {
+            events.push("fire");
+        }
+        
+        if (!(params.kindling || params.smoldering || params.evil || params.aquatic)) {
+            events.push("fire");
+        }
+        if (params.slaver) {
+            events.push("slave1", "slave2", "slave3");
+        }
+        
+        /* Remove the last event that occurred from the list so that the same event can't happen twice in a row */
+        let lastIdx = events.indexOf(sim.lastEvent);
+        if (lastIdx != -1) {
+            events.splice(lastIdx, 1);
+        }
+
+        let event = events[Rand(0, events.length)];
+        
+        if (event == "surge") {
             /* Demon surge event, if enabled by user */
             if (params.surges) {
                 let surge = Rand(2500, 5000);
@@ -758,7 +770,7 @@ function Events(params, sim, stats) {
                     LogResult(stats, TimeStr(sim) + " - Demon Surge Event!  " + surge + " new demons, new threat total " + sim.threat + "\n");
                 }
             }
-        } else if (event == 1) {
+        } else if (event == "terrorist") {
             /* Terrorist attack or enemy raid.  Equivalent for our purposes here */
             if (params.terrorists) {
                 let killed = Rand(0, sim.wounded);
@@ -776,6 +788,9 @@ function Events(params, sim, stats) {
                 }
             }
         } /* else, irrelevant event */
+        
+        sim.lastEvent = event;
+        
         /* Reset event odds */
         sim.eventOdds = 999;
     } else {

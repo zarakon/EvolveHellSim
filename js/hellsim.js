@@ -647,6 +647,9 @@ function BloodWar(params, sim, stats) {
     /* Surveyors */
     if (sim.surveyors > 0) {
         let divisor = 1000;
+        if (params.governor == "sports") {
+            divisor *= 1.10;
+        }
         if (params.blurry) {
             divisor += 250;
         }
@@ -924,6 +927,10 @@ function HealSoldiers(params, sim, stats) {
     if (params.cannibal) {
         healCredits += 3;
     }
+    if (params.governor == "sports") {
+        healCredits *= 1.5;
+    }
+    healCredits = Math.round(healCredits);
     
     let healCost = params.slowRegen ? 25 : 20;
     healed += Math.floor(healCredits / healCost);
@@ -1002,6 +1009,9 @@ function TrainingTime(params) {
 
     bootCampBonus = params.vrTraining == true ? 0.08 : 0.05;
     bootCampBonus += params.bloodLust * 0.002;
+    if (params.governor == "soldier") {
+        bootCampBonus *= 1.25;
+    }
     
     /* rate is percentage points per tick */
     rate = params.diverse ? 2.0 : 2.5;
@@ -1078,6 +1088,9 @@ function ArmyRating(params, sim, size, wound) {
     }
     if (params.banana) {
         rating *= 0.8;
+    }
+    if (params.governor == "soldier") {
+        rating *= 1.05;
     }
 
     rating *= 1 + (params.tactical * 0.05);
@@ -1464,6 +1477,7 @@ function ConvertSave(save) {
     $('#tactical')[0].value = save.race['tactical'] || 0;
     $('#temples')[0].value = save.city.temple ? save.city.temple.count : 0;
     $('#government')[0].value = save.civic.govern.type || 'anarchy';
+    $('#governor')[0].value = save.race['governor'] && save.race.governor['g'] ? save.race.governor.g.bg : 'none';
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
     $('#fibroblast')[0].value = save.race['fibroblast'] || 0;

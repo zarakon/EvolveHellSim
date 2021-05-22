@@ -81,6 +81,13 @@ a:hover {
     transition: none !important;
 }
 
+.collapser {
+    cursor: pointer;
+}
+.collapser:hover {
+    color: #dddad5;
+}
+
 
 #result {
 	font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;

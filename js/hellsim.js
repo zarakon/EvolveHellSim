@@ -1574,6 +1574,47 @@ $(document).ready(function() {
         OnChange();
     });
     
+    $('#hTraits').mousedown(function(e){ e.preventDefault(); });
+    $('#hTraits').click(function() {
+        $('#cTraits').toggle();
+        if ($('#cTraits').is(":visible")) {
+            $('#hTraits').html("Traits  -");
+        } else {
+            $('#hTraits').html("Traits  +");
+        }
+    });
+
+    $('#hUpgrades').mousedown(function(e){ e.preventDefault(); });
+    $('#hUpgrades').click(function() {
+        $('#cUpgrades').toggle();
+        if ($('#cUpgrades').is(":visible")) {
+            $('#hUpgrades').html("Upgrades  -");
+        } else {
+            $('#hUpgrades').html("Upgrades  +");
+        }
+    });
+
+    $('#hSetup').mousedown(function(e){ e.preventDefault(); });
+    $('#hSetup').click(function() {
+        $('#cSetup').toggle();
+        if ($('#cSetup').is(":visible")) {
+            $('#hSetup').html("Hell Setup  -");
+        } else {
+            $('#hSetup').html("Hell Setup  +");
+        }
+    });
+
+    $('#hOptions').mousedown(function(e){ e.preventDefault(); });
+    $('#hOptions').click(function() {
+        $('#cOptions').toggle();
+        if ($('#cOptions').is(":visible")) {
+            $('#hOptions').html("Sim Options  -");
+        } else {
+            $('#hOptions').html("Sim Options  +");
+        }
+    });
+
+    
     /* Load params from localStorage */
     paramStr = window.localStorage.getItem('hellSimParams') || false;
     if (paramStr) {

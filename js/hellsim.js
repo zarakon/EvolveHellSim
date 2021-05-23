@@ -1300,6 +1300,17 @@ function OnChange() {
     /* Round dark energy to 3 places */
     $('#darkEnergy')[0].value = params.darkEnergy = +params.darkEnergy.toFixed(3);
     
+    /* Manage collapsers */
+    $('.collapser-icon').each(function(index, element) {
+        var el = $(element);
+        let content = $(el.parent().data("target"));
+        if (el.text() == "+") {
+            content.hide(100);
+        } else {
+            content.show(100);
+        }
+    });
+    
     /* Save params to localStorage */
     window.localStorage.setItem('hellSimParams', JSON.stringify(params));
 }
@@ -1371,6 +1382,12 @@ function GetParams() {
         }
     });
     
+    $('.collapser-icon').each(function(index, element) {
+        var el = $(element);
+        var id = el.attr('id');
+        params[id] = el.text();
+    });
+    
     return params;
 }
 
@@ -1383,6 +1400,8 @@ function SetParams(params) {
         if (el.length && params[key]) {
             if (el.attr('type') == "checkbox") {
                 el[0].checked = params[key];
+            } else if (el.hasClass('collapser-icon')) {
+                el.text(params[key].toString());
             } else {
                 el.val(params[key].toString());
             }
@@ -1539,10 +1558,8 @@ function ConvertSave(save) {
     
 }
 
-$(document).ready(function() {
-    console.log("Ready");
-    $('#result').val("Ready\n");
-    
+$(document).ready( function() {
+   
     $('#paramsForm').submit(function(event) {
         event.preventDefault();
         Simulate();
@@ -1560,47 +1577,17 @@ $(document).ready(function() {
         OnChange();
     });
     
-    $('#hTraits').mousedown(function(e){ e.preventDefault(); });
-    $('#hTraits').click(function() {
-        $('#cTraits').toggle();
-        if ($('#cTraits').is(":visible")) {
-            $('#hTraits').html("Traits  -");
+    $('.collapser').mousedown(function(e){ e.preventDefault(); });
+    $('.collapser').click(function() {
+        let icon = $(this).children().first();
+        if (icon.text() == "+") { // Currently collapsed
+            icon.text("-");
         } else {
-            $('#hTraits').html("Traits  +");
+            icon.text("+");
         }
+        OnChange();
     });
 
-    $('#hUpgrades').mousedown(function(e){ e.preventDefault(); });
-    $('#hUpgrades').click(function() {
-        $('#cUpgrades').toggle();
-        if ($('#cUpgrades').is(":visible")) {
-            $('#hUpgrades').html("Upgrades  -");
-        } else {
-            $('#hUpgrades').html("Upgrades  +");
-        }
-    });
-
-    $('#hSetup').mousedown(function(e){ e.preventDefault(); });
-    $('#hSetup').click(function() {
-        $('#cSetup').toggle();
-        if ($('#cSetup').is(":visible")) {
-            $('#hSetup').html("Hell Setup  -");
-        } else {
-            $('#hSetup').html("Hell Setup  +");
-        }
-    });
-
-    $('#hOptions').mousedown(function(e){ e.preventDefault(); });
-    $('#hOptions').click(function() {
-        $('#cOptions').toggle();
-        if ($('#cOptions').is(":visible")) {
-            $('#hOptions').html("Sim Options  -");
-        } else {
-            $('#hOptions').html("Sim Options  +");
-        }
-    });
-
-    
     /* Load params from localStorage */
     paramStr = window.localStorage.getItem('hellSimParams') || false;
     if (paramStr) {
@@ -1609,5 +1596,8 @@ $(document).ready(function() {
     }
 
     OnChange();
+
+    console.log("Ready");
+    $('#result').val("Ready\n");
 });
 

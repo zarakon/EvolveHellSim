@@ -165,6 +165,10 @@ function SimRun(params, sim, stats) {
                 HealSoldiers(params, sim, stats);
             }
             
+            if (params.hireMercs == "governor") {
+                HireMercs(params, sim, stats);
+            }
+            
             /* Random events, which could mean a demon surge influx */
             Events(params, sim, stats);
             
@@ -183,7 +187,7 @@ function SimRun(params, sim, stats) {
         if (sim.money > params.moneyCap) {
             sim.money = params.moneyCap;
         }
-        if (params.hireMercs != 0) {
+        if (params.hireMercs == "script" || params.hireMercs == "autoclick") {
             HireMercs(params, sim, stats);
         }
         stats.totalGarrison += (sim.soldiers - sim.hellSoldiers);
@@ -293,7 +297,7 @@ function SimResults(params, stats) {
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
-    if (params.hireMercs != 0) {
+    if (params.hireMercs != "off") {
         LogResult(stats,
             "Mercs hired per hour: " + (stats.mercsHired / hours).toFixed(1) +
             ", avg cost: " + (stats.mercCosts / stats.mercsHired).toFixed(3) +
@@ -822,9 +826,11 @@ function TrainSoldiers(params, sim, stats) {
 function HireMercs(params, sim, stats) {
     
     switch (params.hireMercs) {
-        case 0: return;
-        case 1: /* Volch Script */
-            while (MercScriptReqsMet(params, sim, stats) == true) {
+        case "off":
+            return;
+        case "governor": /* Governor task: Merc Recruitment */
+        case "script": /* Volch Script */
+            while (MercReqsMet(params, sim, stats) == true) {
                 var price = MercPrice(sim, stats)
                 sim.money -= price;
                 sim.soldiers++;
@@ -836,7 +842,7 @@ function HireMercs(params, sim, stats) {
                 stats.mercsHired++;
             }
             break;
-        case 2: /* Autoclick */
+        case "autoclick": /* Autoclick */
             sim.clickerCounter++;
             if ((sim.clickerCounter * stats.tickLength) / 1000 >= params.clickerInterval) {
                 if (sim.soldiers < sim.maxSoldiers) {
@@ -863,24 +869,35 @@ function HireMercs(params, sim, stats) {
     }
 }
 
-function MercScriptReqsMet(params, sim, stats) {
+function MercReqsMet(params, sim, stats) {
     var price = MercPrice(sim, stats);  
-    var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
-    var incomeThreshold = params.moneyIncome * params.scriptIncome;
     
-    if (price > sim.money) {
+    if (params.hireMercs == "script") {
+        var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
+        var incomeThreshold = params.moneyIncome * params.scriptIncome;
+        
+        if (price > sim.money) {
+            return false;
+        }
+        if (sim.soldiers + 1 >= sim.maxSoldiers) {
+            return false;
+        }
+        if (sim.money > moneyThreshold) {
+            return true;
+        }
+        if (price <= incomeThreshold) {
+            return true;
+        }
+        
         return false;
-    }
-    
-    if (sim.soldiers >= sim.maxSoldiers) {
-        return false;
-    }
-    
-    if (sim.money > moneyThreshold) {
-        return true;
-    }
-    
-    if (price  <= incomeThreshold) {
+
+    } else if (params.hireMercs == "governor") {
+        if (sim.soldiers + 1 >= sim.maxSoldiers) {
+            return false;
+        }
+        if (price + sim.money + params.moneyIncome < params.moneyCap) {
+            return false;
+        }
         return true;
     }
 }
@@ -1240,7 +1257,7 @@ function OnChange() {
     }
     let trainingRate = 3600 / trainingTime;
 
-    if (params.hireMercs == 1) {
+    if (params.hireMercs == "script") {
         $('#moneyIncomeDiv')[0].hidden = false;
         $('#moneyCapDiv')[0].hidden = false;
         $('#scriptCapThresholdDiv')[0].hidden = false;
@@ -1261,7 +1278,7 @@ function OnChange() {
         trainingRate += mercRate;
         trainingTime = 3600 / trainingRate;
 
-    } else if (params.hireMercs == 2) {
+    } else if (params.hireMercs == "autoclick") {
         $('#moneyIncomeDiv')[0].hidden = false;
         $('#moneyCapDiv')[0].hidden = false;
         $('#scriptCapThresholdDiv')[0].hidden = true;
@@ -1270,6 +1287,32 @@ function OnChange() {
         $('#mercsBlank1')[0].hidden = true;
         $('#mercsBlank2')[0].hidden = true;
         $('#mercsBlank3')[0].hidden = true;
+        $('#mercsBlank4')[0].hidden = false;
+        $('#mercsBlank5')[0].hidden = false;
+        var mercRate;
+        if (params.clickerInterval > 15) {
+            mercRate = (3600 / params.clickerInterval);
+        } else {
+            mercRate = 240;
+        }
+        if (params.hyper) {
+            mercRate /= 0.95;
+        }
+        if (params.slow) {
+            mercRate /= 1.1;
+        }
+        trainingRate += mercRate;
+        trainingTime = 3600 / trainingRate;
+
+    } else if (params.hireMercs == "governor") {
+        $('#moneyIncomeDiv')[0].hidden = false;
+        $('#moneyCapDiv')[0].hidden = false;
+        $('#scriptCapThresholdDiv')[0].hidden = true;
+        $('#scriptIncomeDiv')[0].hidden = true;
+        $('#clickerIntervalDiv')[0].hidden = true;
+        $('#mercsBlank1')[0].hidden = true;
+        $('#mercsBlank2')[0].hidden = true;
+        $('#mercsBlank3')[0].hidden = false;
         $('#mercsBlank4')[0].hidden = false;
         $('#mercsBlank5')[0].hidden = false;
         var mercRate;
@@ -1488,6 +1531,20 @@ function ConvertSave(save) {
     $('#bloodLust')[0].value = save['blood'] && save.blood['lust'] ? save.blood.lust : 0;
     $('#soulTrap')[0].value = save['blood'] && save.blood['attract'] ? save.blood.attract : 0;
 
+    let governor = false;
+    if (save.race['governor'] && save.race.governor['tasks']) {
+        for (var task in save.race.governor.tasks) {
+            if (save.race.governor.tasks[task] == "merc") {
+                governor = true;
+            }
+        }
+    }
+    if (governor && $('#hireMercs')[0].value == "off") {
+        $('#hireMercs')[0].value = "governor";
+    } else if (!governor && $('#hireMercs')[0].value == "governor") {
+        $('#hireMercs')[0].value = "off";
+    }
+    
     $('#moneyCap')[0].value = save.resource['Money'] ? (save.resource.Money.max / 1000000).toFixed(2) : 0;
     $('#moneyIncome')[0].value = save.resource['Money'] ? (save.resource.Money.diff / 1000000).toFixed(2) : 0;
     

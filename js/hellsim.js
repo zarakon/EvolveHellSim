@@ -1559,6 +1559,21 @@ function ConvertSave(save) {
 }
 
 $(document).ready( function() {
+    var traits = $('#cTraits').children();
+    var newRow;
+    var i;
+    for (i = 0; i < traits.length; i++) {
+        if (i % 5 == 0) {
+            newRow = $('<div>').prop({className: 'row'});
+            $('#cTraits').append(newRow);
+        }
+        newRow.append(traits[i]);
+    }
+    while (i % 5 != 0) {
+        newRow.append('<div class="col"></div>');
+        i++;
+    }
+    $('#cTraits')[0].hidden = false;
    
     $('#paramsForm').submit(function(event) {
         event.preventDefault();

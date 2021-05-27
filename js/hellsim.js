@@ -19,6 +19,7 @@ function Simulate() {
     
     var stats = {
         outputStr: "",
+        startTime: 0,
         ticks: 0,
         tickLength: 0,
         simsDone: 0,
@@ -77,6 +78,8 @@ function Simulate() {
         stats.tickLength *= 1.1;
     }
     
+    stats.startTime = Date.now();
+    
     SimScheduler(params, false, stats);
 }
 
@@ -116,6 +119,8 @@ function SimRun(params, sim, stats) {
             maxSoldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
             hellSoldiers: params.patrols * params.patrolSize + params.defenders,
             maxHellSoldiers: params.patrols * params.patrolSize + params.defenders,
+            patrolRating: 0,
+            patrolRatingDroids: 0,
             wounded: 0,
             trainingProgress: 0,
             surveyors: params.surveyors,
@@ -139,6 +144,15 @@ function SimRun(params, sim, stats) {
             sim.hellSoldiers += forgeSoldiers;
             sim.maxHellSoldiers += forgeSoldiers;
         }
+
+        /* Calculate patrol rating ahead of time for efficiency */
+        sim.patrolRating = ArmyRating(params, false, params.patrolSize);
+        if (params.enhDroids) {
+            sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
+        } else {
+            sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
+        }
+
         let simNum = stats.simsDone + 1;
         LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
     }
@@ -347,6 +361,9 @@ function SimResults(params, stats) {
         LogResult(stats, "Soul Forge on-time: " + ((stats.forgeOn / stats.bloodWars) * 100).toFixed(1) + "%" +
             ", souls per hour: " + (stats.forgeSouls / hours).toFixed(0) +
             "\n");
+        LogResult(stats, "Total sim time: " + ((Date.now() - stats.startTime) / 1000).toFixed(1) + " seconds.  " +
+            "Sim ticks per second: " + ((stats.ticks / ((Date.now() - stats.startTime) / 1000)) / 1000).toFixed(1) + "k" +
+            "\n");
     }
 
     $('#result')[0].scrollIntoView(true);
@@ -443,6 +460,15 @@ function BloodWar(params, sim, stats) {
     /* Patrols */
     let soldiersKilled = 0;
     let needPity = false;
+    /* Update patrol rating if cautious, for random weather */
+    if (params.cautious) {
+        sim.patrolRating = ArmyRating(params, sim, params.patrolSize);
+        if (params.enhDroids) {
+            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 2);
+        } else {
+            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 1);
+        }
+    }
     let patrolWounds = 0;
     let extraWounds = 0;
     if (sim.wounded > 0) {
@@ -467,14 +493,22 @@ function BloodWar(params, sim, stats) {
             /* Encounter */
             stats.patrolEncounters++;
             
-            let patrolSize = params.patrolSize;
-            /* Add droids if available */
-            if (i < params.droids) {
-                patrolSize += params.enhDroids ? 2 : 1;
+            var patrolRating;
+            /* If no wounded, use alread-calculated patrol rating to save time */
+            if (wounded == 0) {
+                if (i < params.droids) {
+                    patrolRating = sim.patrolRatingDroids;
+                } else {
+                    patrolRating = sim.patrolRating;
+                }
+            } else {
+                let patrolSize = params.patrolSize;
+                if (i < params.droids) {
+                    patrolSize += params.enhDroids ? 2 : 1;
+                }
+                patrolRating = ArmyRating(params, sim, patrolSize, wounded);
             }
             
-            let patrolRating = ArmyRating(params, sim, patrolSize, wounded);
-
             let minDemons = Math.floor(sim.threat / 50);
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
@@ -1023,7 +1057,7 @@ function ArmyRating(params, sim, size, wound) {
     var rating = size;
     var wounded = 0;
     
-    if (wound) {
+    if (wound != undefined) {
         wounded = wound;
     } else if (sim) {
         if (size > sim.soldiers - sim.wounded) {

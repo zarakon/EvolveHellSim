@@ -123,6 +123,7 @@ function SimRun(params, sim, stats) {
             patrolRatingDroids: 0,
             wounded: 0,
             trainingProgress: 0,
+            trainingTime: 0,
             surveyors: params.surveyors,
             carRepair: 0,
             siegeOdds: 999,
@@ -145,13 +146,14 @@ function SimRun(params, sim, stats) {
             sim.maxHellSoldiers += forgeSoldiers;
         }
 
-        /* Calculate patrol rating ahead of time for efficiency */
+        /* Calculate patrol rating and training rate ahead of time for efficiency */
         sim.patrolRating = ArmyRating(params, false, params.patrolSize);
         if (params.enhDroids) {
             sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
         } else {
             sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
         }
+        sim.trainingTime = TrainingTime(params);
 
         let simNum = stats.simsDone + 1;
         LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
@@ -838,7 +840,7 @@ function TrainSoldiers(params, sim, stats) {
         return;
     }
     
-    sim.trainingProgress += 100 / TrainingTime(params);
+    sim.trainingProgress += 100 / sim.trainingTime;
     
     if (sim.trainingProgress >= 100) {
         sim.soldiers++;

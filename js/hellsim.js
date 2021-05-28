@@ -860,84 +860,86 @@ function TrainSoldiers(params, sim, stats) {
 }
 
 function HireMercs(params, sim, stats) {
-    
-    switch (params.hireMercs) {
-        case "off":
-            return;
-        case "governor": /* Governor task: Merc Recruitment */
-        case "script": /* Volch Script */
-            while (MercReqsMet(params, sim, stats) == true) {
-                var price = MercPrice(sim, stats)
-                sim.money -= price;
-                sim.soldiers++;
-                if (sim.hellSoldiers < sim.maxHellSoldiers) {
-                    sim.hellSoldiers++;
-                }
-                stats.mercCosts += price;
-                sim.mercCounter++;
-                stats.mercsHired++;
-            }
-            break;
-        case "autoclick": /* Autoclick */
-            sim.clickerCounter++;
-            if ((sim.clickerCounter * stats.tickLength) / 1000 >= params.clickerInterval) {
-                if (sim.soldiers < sim.maxSoldiers) {
-                    var price = MercPrice(sim, stats);
-                    if (price <= sim.money) {
-                        sim.money -= price;
-                        sim.soldiers++;
-                        if (sim.hellSoldiers < sim.maxHellSoldiers) {
-                            sim.hellSoldiers++;
-                        }
-                        stats.mercCosts += price;
-                        sim.mercCounter++;
-                        stats.mercsHired++;
-                    }
-                }
-                sim.clickerCounter = 0;
-            }
-            break;
-        default: break;
-    }
+    var result;
+    do {
+        result = TryBuyMerc(params, sim, stats);
+    } while (result == true);
     
     if (sim.money < stats.minMoney) {
         stats.minMoney = sim.money;
     }
+    return;
 }
 
-function MercReqsMet(params, sim, stats) {
-    var price = MercPrice(sim, stats);  
+function TryBuyMerc(params, sim, stats) {
     
-    if (params.hireMercs == "script") {
-        var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
-        var incomeThreshold = params.moneyIncome * params.scriptIncome;
-        
-        if (price > sim.money) {
+    /* Filter out no-buy cases in stages to avoid calculating merc price every time */
+    
+    switch (params.hireMercs) {
+        case "off":
             return false;
-        }
-        if (sim.soldiers + 1 >= sim.maxSoldiers) {
-            return false;
-        }
-        if (sim.money > moneyThreshold) {
-            return true;
-        }
-        if (price <= incomeThreshold) {
-            return true;
-        }
-        
-        return false;
-
-    } else if (params.hireMercs == "governor") {
-        if (sim.soldiers + 1 >= sim.maxSoldiers) {
-            return false;
-        }
-        if (price + sim.money + params.moneyIncome < params.moneyCap) {
-            return false;
-        }
-        return true;
+        case "governor": /* Governor task: Merc Recruitment */
+        case "script": /* Volch Script */
+            if (sim.soldiers + 1 >= sim.maxSoldiers) {
+                return false;
+            }
+            /* else proceed */
+            break;
+        case "autoclick": /* Autoclick */
+            sim.clickerCounter++;
+            if ((sim.clickerCounter * stats.tickLength) / 1000 < params.clickerInterval) {
+                return false;
+            } else {
+                sim.clickerCounter = 0;
+                if (sim.soldiers >= sim.maxSoldiers) {
+                    return false;
+                }
+            }
+            break;
+        default: return false;
     }
-}
+    
+    var price = MercPrice(sim, stats);
+    if (price > sim.money) {
+        return false;
+    }
+    
+    switch (params.hireMercs) {
+        case "governor":
+            if (price + sim.money + params.moneyIncome < params.moneyCap) {
+                return false;
+            }
+            break;
+        case "script":
+            var moneyThreshold = params.moneyCap * (params.scriptCapThreshold / 100.0);
+            var incomeThreshold = params.moneyIncome * params.scriptIncome;
+            
+            if (sim.money > moneyThreshold || price <= incomeThreshold) {
+                break;
+            } else {
+                return false;
+            }
+        default:
+            return false;
+    }
+    
+    /* Passed all checks.  Hire a merc */
+    sim.money -= price;
+    sim.soldiers++;
+    if (sim.hellSoldiers < sim.maxHellSoldiers) {
+        sim.hellSoldiers++;
+    }
+    stats.mercCosts += price;
+    sim.mercCounter++;
+    stats.mercsHired++;
 
+    if (price > stats.mercMaxPrice) {
+        stats.mercMaxPrice = price;
+    }
+    
+    return true;
+}
+    
 function MercPrice(sim, stats) {
     var garrison = sim.soldiers - sim.hellSoldiers;
     var price = Math.round((1.24 ** garrison) * 75) - 50;
@@ -953,10 +955,6 @@ function MercPrice(sim, stats) {
     
     /* Convert to millions */
     price /= 1000000.0;
-    
-    if (price > stats.mercMaxPrice) {
-        stats.mercMaxPrice = price;
-    }
     
     return price;
 }

@@ -227,11 +227,14 @@ function SimRun(params, sim, stats) {
         sim.tick++;
         stats.ticks++;
         
-        let msElapsed = Date.now() - startTime;
-        if (msElapsed > 50) {
-            /* Yield CPU */
-            SimScheduler(params, sim, stats);
-            return;
+        if (sim.tick % ticks_per_bloodwar == 0) {
+            /* Only check the time occasionally.  Checking on every tick is bad for performance */
+            let msElapsed = Date.now() - startTime;
+            if (msElapsed > 50) {
+                /* Yield CPU */
+                SimScheduler(params, sim, stats);
+                return;
+            }
         }
         
         if (gStop) {

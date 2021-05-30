@@ -1,22 +1,34 @@
 onmessage = function(e) {
-    var cmd = e.data[0];
     
-    switch (cmd) {
+    switch (e.data.cmd) {
         case 'start':
-            /* data[1] = params */
+            SimStart(e.data.id, e.data.count);
             break;
         case 'stop':
             break;
         default:
-            console.log("Unknown worker cmd " + e.data[0] + "\n");
             break;
     }
     
     return;
 }
 
-function SimStart(params) {
-    
+function SimStart(id, count) {
+    var i = 1;
+    var progress = 0;
+    while (i < count) {
+        i++;
+        Math.random();
+        let newProgress = Math.floor(100 * i / count);
+        if (newProgress > progress) {
+            let increment = newProgress - progress;
+            if (increment >= 10 || newProgress == 100) {
+                self.postMessage({id: id, cmd: 'progress', progress: (increment)});
+                progress = newProgress;
+            }
+        }
+    }
+    self.postMessage({id: id, cmd: 'done', count: i});
 }
 
 function SimStop() {

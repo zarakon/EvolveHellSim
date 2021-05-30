@@ -1,5 +1,15 @@
 var gStop = false;
 
+var gWorkers = [];
+var gSum = 0;
+var gCurrentJob = 0;
+var gThreadCount = 8;
+var gJobsDone = 0;
+var gNumJobs = 50;
+var gCount = 20000000;
+var gProgress = 0;
+var gStartTime = 0;
+
 function Simulate() {
     $('#result').val("");
 
@@ -80,7 +90,72 @@ function Simulate() {
     
     stats.startTime = Date.now();
     
-    SimScheduler(params, false, stats);
+    gSum = 0;
+    gCurrentJob = 0;
+    gJobsDone = 0;
+    gProgress = 0;
+    gStartTime = Date.now();
+    
+    if (navigator.hardwareConcurrency) {
+        gThreadCount = navigator.hardwareConcurrency / 2;
+        if (gThreadCount < 1) {
+            gThreadCount = 1;
+        }
+    }
+    
+    
+    console.log("Thread count " + gThreadCount + "\n");
+    for (var i = 0; i < gThreadCount && i < gNumJobs; i++) {
+        gWorkers[i] = new Worker('js/worker.js');
+        gWorkers[i].onmessage = WorkerHandler;
+        console.log("Starting job " + gCurrentJob + " with worker " + i);
+        gWorkers[i].postMessage({id: gCurrentJob, cmd: 'start', count: gCount});
+        gCurrentJob++;
+    }
+}
+
+function WorkerHandler (e) {
+    switch (e.data.cmd) {
+        case 'done':
+            gSum += e.data.count;
+            gJobsDone++;
+            console.log("Finished job " + e.data.id + ". gSum = " + gSum);
+            if (gCurrentJob < gNumJobs) {
+                let i = gCurrentJob % gThreadCount;
+                console.log("Starting job " + gCurrentJob + " with worker " + i);
+                gWorkers[i].postMessage({id: gCurrentJob, cmd: 'start', count:gCount});
+                gCurrentJob++;
+            } else if (gJobsDone >= gNumJobs) {
+                let elapsed = Date.now() - gStartTime;
+                console.log("All done!  gSum = " + gSum + ".  Time elapsed = " + (elapsed / 1000).toFixed(2) + "s");
+                for (let i = 0; i < gWorkers.length; i++) {
+                    gWorkers[i].terminate();
+                }
+                
+                
+                /* Restore the Simulate button after locking it briefly, to avoid accidentally
+                   starting a new sim if the user attempts to press stop just as it finishes */
+                $('#simButton').text("Simulate");
+                $('#simButton').attr("disabled", true);
+                setTimeout(function() {
+                    $('#paramsForm').unbind("submit");
+                    $('#paramsForm').submit(function(event) {
+                        event.preventDefault();
+                        Simulate();
+                    });
+                    $('#simButton').attr("disabled", false);
+                }, 250);
+            }
+            break;
+        case 'progress':
+            gProgress += (e.data.progress / gNumJobs);
+            $('#simProgress').attr("aria-valuenow",Math.floor(gProgress));
+            $('#simProgress').css("width", gProgress + "%");
+            break;
+        default:
+            console.log("Unknown worker response " + e.data.cmd);
+            break;
+    }
 }
 
 function SimScheduler(params, sim, stats) {

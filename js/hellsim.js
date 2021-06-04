@@ -1102,7 +1102,12 @@ function ArmyRating(params, sim, size, wound) {
             wounded = size - (sim.soldiers - sim.wounded);
         }
     }
-    rating -= wounded / 2;
+    
+    if (params.rhinoRage) {
+        rating += wounded / 2;
+    } else {
+        rating -= wounded / 2;
+    }
 
     /* Game code subtracts 1 for tech >= 5 to skip bunk beds.  Here that gets skipped in the HTML selection values themselves */
     let weaponTech = params.weaponTech;
@@ -1116,6 +1121,9 @@ function ArmyRating(params, sim, size, wound) {
     
     rating *= weaponTech;
     
+    if (sim && params.rhinoRage) {
+        rating *= 1 + (0.01 * sim.wounded);
+    }
     if (params.puny) {
         rating *= 0.9;
     }
@@ -1570,6 +1578,7 @@ function ConvertSave(save) {
     $('#pathetic')[0].checked = save.race['pathetic'] ? true : false;
     $('#puny')[0].checked = save.race['puny'] ? true : false;
     $('#rage')[0].checked = save.city.ptrait == 'rage' ? true : false;
+    $('#rhinoRage')[0].checked = save.race['rage'] ? true : false;
     $('#regenerative')[0].checked = save.race['regenerative'] ? true : false;
     $('#revive')[0].checked = save.race['revive'] ? true : false;
     $('#scales')[0].checked = save.race['scales'] ? true : false;

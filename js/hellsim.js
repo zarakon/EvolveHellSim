@@ -1517,7 +1517,7 @@ function SetParams(params) {
     for (const key of Object.keys(params)) {
         let id = "#" + key;
         let el = $(id);
-        if (el.length && params[key]) {
+        if (el.length && params[key] != null) {
             if (el.attr('type') == "checkbox") {
                 el[0].checked = params[key];
             } else if (el.hasClass('collapser-icon')) {

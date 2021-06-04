@@ -694,7 +694,10 @@ function BloodWar(params, sim, stats) {
             divisor *= 1.10;
         }
         if (params.blurry) {
-            divisor += 250;
+            divisor *= 1.25;
+        }
+        if (params.instincts) {
+            divisor *= 1.10;
         }
         if (params.shieldGen) {
             divisor += 250;
@@ -1045,6 +1048,11 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
         casualties = Rand((ambush ? 1 : 0), (casualties + 1));
         dead = Rand(0, (casualties + 1));
         let wounded = casualties - dead;
+        if (params.instincts) {
+            let reduction = Math.floor(dead * (50 / 100));
+            dead -= reduction;
+            wounded += reduction;
+        }
         sim.wounded += wounded;
         sim.soldiers -= dead;
         stats.soldiersKilled += dead;

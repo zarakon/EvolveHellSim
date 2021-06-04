@@ -1104,7 +1104,17 @@ function ArmyRating(params, sim, size, wound) {
     }
     rating -= wounded / 2;
 
-    rating *= params.weaponTech;
+    /* Game code subtracts 1 for tech >= 5 to skip bunk beds.  Here that gets skipped in the HTML selection values themselves */
+    let weaponTech = params.weaponTech;
+
+    if (weaponTech > 1 && params.sniper) {
+        /* Sniper bonus doesn't apply to the base value of 1 or the Cyborg Soldiers upgrade */
+        weaponTech -= params.weaponTech >= 10 ? 2 : 1;
+        weaponTech *= 1.08;
+        weaponTech += params.weaponTech >= 10 ? 2 : 1;
+    }
+    
+    rating *= weaponTech;
     
     if (params.puny) {
         rating *= 0.9;
@@ -1127,6 +1137,7 @@ function ArmyRating(params, sim, size, wound) {
             rating *= 0.9784;
         }
     }
+
     if (params.apexPredator) {
         rating *= 1.3;
     }
@@ -1552,6 +1563,7 @@ function ConvertSave(save) {
     $('#hivemind')[0].checked = save.race['hivemind'] ? true : false;
     $('#holy')[0].checked = save.race['holy'] ? true : false;
     $('#hyper')[0].checked = save.race['hyper'] ? true : false;
+    $('#instincts')[0].checked = save.race['instinct'] ? true : false;
     $('#kindling')[0].checked = save.race['kindling_kindred'] ? true : false;
     $('#magic')[0].checked = save.race.universe == 'magic' ? true : false;
     $('#parasite')[0].checked = save.race['parasite'] ? true : false;
@@ -1565,6 +1577,7 @@ function ConvertSave(save) {
     $('#slow')[0].checked = save.race['slow'] ? true : false;
     $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
     $('#smoldering')[0].checked = save.race['smoldering'] ? true : false;
+    $('#sniper')[0].checked = save.race['sniper'] ? true : false;
     $('#sticky')[0].checked = save.race['sticky'] ? true : false;
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     

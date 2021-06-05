@@ -912,7 +912,9 @@ function TryBuyMerc(params, sim, stats) {
     
     switch (params.hireMercs) {
         case "governor":
-            if (price + sim.money + params.moneyIncome < params.moneyCap) {
+            if (price + sim.money + params.moneyIncome < params.moneyCap &&
+                price > params.moneyIncome)
+            {
                 return false;
             }
             break;

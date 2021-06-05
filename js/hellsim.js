@@ -1115,7 +1115,7 @@ function ArmyRating(params, sim, size, wound) {
     if (weaponTech > 1 && params.sniper) {
         /* Sniper bonus doesn't apply to the base value of 1 or the Cyborg Soldiers upgrade */
         weaponTech -= params.weaponTech >= 10 ? 2 : 1;
-        weaponTech *= 1.08;
+        weaponTech *= 1 + (0.08 * weaponTech);
         weaponTech += params.weaponTech >= 10 ? 2 : 1;
     }
     

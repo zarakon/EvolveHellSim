@@ -18,7 +18,7 @@
 <body>
   <div class="row">
     <div class="col-auto"><h3>Evolve Hell Simulator</h3></div>
-    <div class="col-auto">By jotun (aka Zarakon) and Beorseder<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v1.1.0</div>
+    <div class="col-auto">By jotun (aka Zarakon) and Beorseder<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v1.1.2</div>
     <div class="col-auto">
       <form class="form-inline" id="importForm">
         <input type="textarea" class="form-control mb-2 mr-sm-2" id="saveString" placeholder="Evolve Save String"></input>
@@ -640,6 +640,22 @@
               <span class="input-group-text">Click Interval (s)</span>
             </div>
             <input class="form-control form-control-sm hell-sim-param" id="clickerInterval" value="15" type="number" step="0.001" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="mercBufferDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Recruitment Buffer</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="mercBuffer" value="1" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="mercReserveDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Money Reserve %</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="mercReserve" value="100" type="number" style="text-align: right">
           </div>
         </div>
         <div class="form-group col-sm" id="mercsBlank1">

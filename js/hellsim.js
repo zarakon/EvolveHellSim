@@ -886,7 +886,7 @@ function TryBuyMerc(params, sim, stats) {
             return false;
         case "governor": /* Governor task: Merc Recruitment */
         case "script": /* Volch Script */
-            if (sim.soldiers + 1 >= sim.maxSoldiers) {
+            if (sim.soldiers + params.mercBuffer >= sim.maxSoldiers) {
                 return false;
             }
             /* else proceed */
@@ -912,7 +912,8 @@ function TryBuyMerc(params, sim, stats) {
     
     switch (params.hireMercs) {
         case "governor":
-            if (price + sim.money + params.moneyIncome < params.moneyCap &&
+            let reserve = params.moneyCap * (params.mercReserve / 100);
+            if (price + sim.money + params.moneyIncome < reserve &&
                 price > params.moneyIncome)
             {
                 return false;
@@ -1081,7 +1082,7 @@ function TrainingTime(params) {
     rate = params.diverse ? 2.0 : 2.5;
     rate *= 1 + params.bootCamps * bootCampBonus;
     if (params.beast) {
-        rate *= 1.2;
+        rate *= 1.1;
     }
     if (params.brute) {
         rate += 2.5;
@@ -1329,11 +1330,13 @@ function OnChange() {
         $('#scriptCapThresholdDiv')[0].hidden = false;
         $('#scriptIncomeDiv')[0].hidden = false;
         $('#clickerIntervalDiv')[0].hidden = true;
+        $('#mercBufferDiv')[0].hidden = false;
+        $('#mercReserveDiv')[0].hidden = true;
         $('#mercsBlank1')[0].hidden = true;
         $('#mercsBlank2')[0].hidden = true;
         $('#mercsBlank3')[0].hidden = true;
         $('#mercsBlank4')[0].hidden = true;
-        $('#mercsBlank5')[0].hidden = false;
+        $('#mercsBlank5')[0].hidden = true;
         var mercRate = 240;
         if (params.hyper) {
             mercRate /= 0.95;
@@ -1350,6 +1353,8 @@ function OnChange() {
         $('#scriptCapThresholdDiv')[0].hidden = true;
         $('#scriptIncomeDiv')[0].hidden = true;
         $('#clickerIntervalDiv')[0].hidden = false;
+        $('#mercBufferDiv')[0].hidden = true;
+        $('#mercReserveDiv')[0].hidden = true;
         $('#mercsBlank1')[0].hidden = true;
         $('#mercsBlank2')[0].hidden = true;
         $('#mercsBlank3')[0].hidden = true;
@@ -1376,10 +1381,12 @@ function OnChange() {
         $('#scriptCapThresholdDiv')[0].hidden = true;
         $('#scriptIncomeDiv')[0].hidden = true;
         $('#clickerIntervalDiv')[0].hidden = true;
+        $('#mercBufferDiv')[0].hidden = false;
+        $('#mercReserveDiv')[0].hidden = false;
         $('#mercsBlank1')[0].hidden = true;
         $('#mercsBlank2')[0].hidden = true;
-        $('#mercsBlank3')[0].hidden = false;
-        $('#mercsBlank4')[0].hidden = false;
+        $('#mercsBlank3')[0].hidden = true;
+        $('#mercsBlank4')[0].hidden = true;
         $('#mercsBlank5')[0].hidden = false;
         var mercRate;
         if (params.clickerInterval > 15) {
@@ -1631,6 +1638,10 @@ function ConvertSave(save) {
         $('#hireMercs')[0].value = "governor";
     } else if (!governor && $('#hireMercs')[0].value == "governor") {
         $('#hireMercs')[0].value = "off";
+    }
+    if (save.race.governor['config'] && save.race.governor.config['merc'] && save.race.governor.config.merc['buffer'] && save.race.governor.config.merc['reserve']) {
+        $('#mercBuffer')[0].value = save.race.governor.config.merc['buffer'];
+        $('#mercReserve')[0].value = save.race.governor.config.merc['reserve'];
     }
     
     $('#moneyCap')[0].value = save.resource['Money'] ? (save.resource.Money.max / 1000000).toFixed(2) : 0;

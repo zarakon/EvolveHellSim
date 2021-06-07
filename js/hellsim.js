@@ -913,8 +913,7 @@ function TryBuyMerc(params, sim, stats) {
     switch (params.hireMercs) {
         case "governor":
             let reserve = params.moneyCap * (params.mercReserve / 100);
-            if (price + sim.money + params.moneyIncome < reserve &&
-                price > params.moneyIncome)
+            if (sim.money + params.moneyIncome < reserve && price > params.moneyIncome)
             {
                 return false;
             }

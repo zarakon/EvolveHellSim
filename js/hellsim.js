@@ -1380,8 +1380,8 @@ function OnChange() {
         $('#scriptCapThresholdDiv')[0].hidden = true;
         $('#scriptIncomeDiv')[0].hidden = true;
         $('#clickerIntervalDiv')[0].hidden = true;
-        $('#mercBufferDiv')[0].hidden = false;
-        $('#mercReserveDiv')[0].hidden = false;
+        $('#mercBufferDiv')[0].hidden = true;
+        $('#mercReserveDiv')[0].hidden = true;
         $('#mercsBlank1')[0].hidden = true;
         $('#mercsBlank2')[0].hidden = true;
         $('#mercsBlank3')[0].hidden = true;

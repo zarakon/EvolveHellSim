@@ -1323,98 +1323,107 @@ function OnChange() {
     }
     let trainingRate = 3600 / trainingTime;
 
-    if (params.hireMercs == "script") {
-        $('#moneyIncomeDiv')[0].hidden = false;
-        $('#moneyCapDiv')[0].hidden = false;
-        $('#scriptCapThresholdDiv')[0].hidden = false;
-        $('#scriptIncomeDiv')[0].hidden = false;
-        $('#clickerIntervalDiv')[0].hidden = true;
-        $('#mercBufferDiv')[0].hidden = false;
-        $('#mercReserveDiv')[0].hidden = true;
-        $('#mercsBlank1')[0].hidden = true;
-        $('#mercsBlank2')[0].hidden = true;
-        $('#mercsBlank3')[0].hidden = true;
-        $('#mercsBlank4')[0].hidden = true;
-        $('#mercsBlank5')[0].hidden = true;
-        var mercRate = 240;
-        if (params.hyper) {
-            mercRate /= 0.95;
-        }
-        if (params.slow) {
-            mercRate /= 1.1;
-        }
-        trainingRate += mercRate;
-        trainingTime = 3600 / trainingRate;
+    switch (params.hireMercs) {
+        case "script":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = false;
+            $('#scriptIncomeDiv')[0].hidden = false;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = false;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = true;
+            $('#mercsBlank5')[0].hidden = true;
+            var mercRate = 240;
+            if (params.hyper) {
+                mercRate /= 0.95;
+            }
+            if (params.slow) {
+                mercRate /= 1.1;
+            }
+            trainingRate += mercRate;
+            trainingTime = 3600 / trainingRate;
 
-    } else if (params.hireMercs == "autoclick") {
-        $('#moneyIncomeDiv')[0].hidden = false;
-        $('#moneyCapDiv')[0].hidden = false;
-        $('#scriptCapThresholdDiv')[0].hidden = true;
-        $('#scriptIncomeDiv')[0].hidden = true;
-        $('#clickerIntervalDiv')[0].hidden = false;
-        $('#mercBufferDiv')[0].hidden = true;
-        $('#mercReserveDiv')[0].hidden = true;
-        $('#mercsBlank1')[0].hidden = true;
-        $('#mercsBlank2')[0].hidden = true;
-        $('#mercsBlank3')[0].hidden = true;
-        $('#mercsBlank4')[0].hidden = false;
-        $('#mercsBlank5')[0].hidden = false;
-        var mercRate;
-        if (params.clickerInterval > 15) {
-            mercRate = (3600 / params.clickerInterval);
-        } else {
-            mercRate = 240;
-        }
-        if (params.hyper) {
-            mercRate /= 0.95;
-        }
-        if (params.slow) {
-            mercRate /= 1.1;
-        }
-        trainingRate += mercRate;
-        trainingTime = 3600 / trainingRate;
+            break;
 
-    } else if (params.hireMercs == "governor") {
-        $('#moneyIncomeDiv')[0].hidden = false;
-        $('#moneyCapDiv')[0].hidden = false;
-        $('#scriptCapThresholdDiv')[0].hidden = true;
-        $('#scriptIncomeDiv')[0].hidden = true;
-        $('#clickerIntervalDiv')[0].hidden = true;
-        $('#mercBufferDiv')[0].hidden = false;
-        $('#mercReserveDiv')[0].hidden = false;
-        $('#mercsBlank1')[0].hidden = true;
-        $('#mercsBlank2')[0].hidden = true;
-        $('#mercsBlank3')[0].hidden = true;
-        $('#mercsBlank4')[0].hidden = true;
-        $('#mercsBlank5')[0].hidden = false;
-        var mercRate;
-        if (params.clickerInterval > 15) {
-            mercRate = (3600 / params.clickerInterval);
-        } else {
-            mercRate = 240;
-        }
-        if (params.hyper) {
-            mercRate /= 0.95;
-        }
-        if (params.slow) {
-            mercRate /= 1.1;
-        }
-        trainingRate += mercRate;
-        trainingTime = 3600 / trainingRate;
+        case "autoclick":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = false;
+            $('#mercBufferDiv')[0].hidden = true;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = false;
+            $('#mercsBlank5')[0].hidden = false;
+            var mercRate;
+            if (params.clickerInterval > 15) {
+                mercRate = (3600 / params.clickerInterval);
+            } else {
+                mercRate = 240;
+            }
+            if (params.hyper) {
+                mercRate /= 0.95;
+            }
+            if (params.slow) {
+                mercRate /= 1.1;
+            }
+            trainingRate += mercRate;
+            trainingTime = 3600 / trainingRate;
+            
+            break;
 
-    } else {
-        $('#moneyIncomeDiv')[0].hidden = true;
-        $('#moneyCapDiv')[0].hidden = true;
-        $('#scriptCapThresholdDiv')[0].hidden = true;
-        $('#scriptIncomeDiv')[0].hidden = true;
-        $('#clickerIntervalDiv')[0].hidden = true;
-        $('#mercBufferDiv')[0].hidden = true;
-        $('#mercReserveDiv')[0].hidden = true;
-        $('#mercsBlank1')[0].hidden = false;
-        $('#mercsBlank2')[0].hidden = false;
-        $('#mercsBlank3')[0].hidden = false;
-        $('#mercsBlank4')[0].hidden = false;
-        $('#mercsBlank5')[0].hidden = false;
+        case "governor":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = false;
+            $('#mercReserveDiv')[0].hidden = false;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = true;
+            $('#mercsBlank5')[0].hidden = false;
+            var mercRate;
+            if (params.clickerInterval > 15) {
+                mercRate = (3600 / params.clickerInterval);
+            } else {
+                mercRate = 240;
+            }
+            if (params.hyper) {
+                mercRate /= 0.95;
+            }
+            if (params.slow) {
+                mercRate /= 1.1;
+            }
+            trainingRate += mercRate;
+            trainingTime = 3600 / trainingRate;
+            
+            break;
+
+        default:
+            params.hireMercs = 'off';
+            $('#moneyIncomeDiv')[0].hidden = true;
+            $('#moneyCapDiv')[0].hidden = true;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = true;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = false;
+            $('#mercsBlank2')[0].hidden = false;
+            $('#mercsBlank3')[0].hidden = false;
+            $('#mercsBlank4')[0].hidden = false;
+            $('#mercsBlank5')[0].hidden = false;
+            break;
     } 
 
     $('#trainingRate').html(trainingTime.toFixed(2) + "sec&nbsp;&nbsp;&nbsp;" + trainingRate.toFixed(1) + "/hour");

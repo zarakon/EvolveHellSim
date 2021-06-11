@@ -18,7 +18,7 @@
 <body>
   <div class="row">
     <div class="col-auto"><h3>Evolve Hell Simulator</h3></div>
-    <div class="col-auto">By jotun (aka Zarakon) and Beorseder<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v1.1.2</div>
+    <div class="col-auto">By jotun (aka Zarakon) and Beorseder<br>Based on <a href="https://pmotschmann.github.io/Evolve/" target="_blank">Evolve by Demagorddon</a> v1.1.4</div>
     <div class="col-auto">
       <form class="form-inline" id="importForm">
         <input type="textarea" class="form-control mb-2 mr-sm-2" id="saveString" placeholder="Evolve Save String"></input>
@@ -308,6 +308,7 @@
         <div class="form-group col-sm">
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group col-sm">
           <div class="input-group input-group-sm">
@@ -388,6 +389,88 @@
         <div class="form-group col-sm">
         </div>
         <div class="form-group col-sm">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-sm">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Auto-Mercs</span>
+            </div>
+            <select class="form-control form-control-sm hell-sim-param" id="hireMercs">
+              <option value=off selected>Off</option>
+              <option value=governor>Governor</option>
+              <option value=script>Volch Script</option>
+              <option value=autoclick>Auto-Click</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group col-sm" id="moneyCapDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">$ Capacity (M)</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="moneyCap" value="100" type="number" step="0.001" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="moneyIncomeDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">$ Income (M/s)</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="moneyIncome" value="1" type="number" step="0.001" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="scriptCapThresholdDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Cap Threshold %</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="scriptCapThreshold" value="90" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="scriptIncomeDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Or Income Seconds</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="scriptIncome" value="1" type="number" step="0.001" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="clickerIntervalDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Click Interval (s)</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="clickerInterval" value="15" type="number" step="0.001" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="mercBufferDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Recruitment Buffer</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="mercBuffer" value="1" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="mercReserveDiv" hidden>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Money Reserve %</span>
+            </div>
+            <input class="form-control form-control-sm hell-sim-param" id="mercReserve" value="100" type="number" style="text-align: right">
+          </div>
+        </div>
+        <div class="form-group col-sm" id="mercsBlank1">
+        </div>
+        <div class="form-group col-sm" id="mercsBlank2">
+        </div>
+        <div class="form-group col-sm" id="mercsBlank3">
+        </div>
+        <div class="form-group col-sm" id="mercsBlank4">
+        </div>
+        <div class="form-group col-sm" id="mercsBlank5">
         </div>
       </div>
     </div>
@@ -586,87 +669,6 @@
               <option value=true selected>Yes</option>
             </select>
           </div>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-sm">
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Auto-Mercs</span>
-            </div>
-            <select class="form-control form-control-sm hell-sim-param" id="hireMercs">
-              <option value=off selected>Off</option>
-              <option value=governor>Governor</option>
-              <option value=script>Volch Script</option>
-              <option value=autoclick>Auto-Click</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group col-sm" id="moneyCapDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">$ Capacity (M)</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="moneyCap" value="100" type="number" step="0.001" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="moneyIncomeDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">$ Income (M/s)</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="moneyIncome" value="1" type="number" step="0.001" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="scriptCapThresholdDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Cap Threshold %</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="scriptCapThreshold" value="90" type="number" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="scriptIncomeDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Or Income Seconds</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="scriptIncome" value="1" type="number" step="0.001" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="clickerIntervalDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Click Interval (s)</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="clickerInterval" value="15" type="number" step="0.001" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="mercBufferDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Recruitment Buffer</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="mercBuffer" value="1" type="number" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="mercReserveDiv" hidden>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Money Reserve %</span>
-            </div>
-            <input class="form-control form-control-sm hell-sim-param" id="mercReserve" value="100" type="number" style="text-align: right">
-          </div>
-        </div>
-        <div class="form-group col-sm" id="mercsBlank1">
-        </div>
-        <div class="form-group col-sm" id="mercsBlank2">
-        </div>
-        <div class="form-group col-sm" id="mercsBlank3">
-        </div>
-        <div class="form-group col-sm" id="mercsBlank4">
-        </div>
-        <div class="form-group col-sm" id="mercsBlank5">
         </div>
       </div>
       <div class="form-row">

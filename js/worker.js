@@ -1,3 +1,75 @@
+
+/*
+    Every message has a 'cmd' field to specify the message type.  For each cmd, there may be other fields
+
+    Messages FROM main TO worker:
+        'info'                  - Request info for updating the UI for army rating, training rate, etc.
+            params                  - Sim parameters
+        'start'                 - Start a simulation
+            id                      - Unique sim ID number
+            params                  - Sim parameters
+        'stop'                  - Stop the simulation
+        
+    Messages FROM worker TO main:
+        'info'                  - Response to info request
+            fortressRating          - Fortress combat rating
+            patrolRating            - Normal patrol combat rating
+            patrolRatingDroids      - Droid-augmented patrol combat rating
+            trainingTime            - Soldier training time in ticks per soldier
+            forgeSoldiers           - Number of soldiers required to run the Soul Forge
+        'progress'              - Update 
+        'done'                  - Simulation finished
+            id                      - Unique sim ID number
+            stats                   - Result stats
+        'stopped'               - Simulation stopped after a stop request
+            id                      - Unique sim ID number
+            stats                   - Partial result stats
+*/
+onmessage = function(e) {
+    switch (e.data.cmd) {
+        case 'info':
+            ProvideInfo(e.data.params);
+            break;
+        case 'start':
+            break;
+        case 'stop':
+            break;
+        default:
+            break;
+    }
+    
+    return;
+}
+
+function ProvideInfo (params) {
+    var fortressRating;
+    var patrolRating;
+    var patrolRatingDroids;
+    var trainingTime;
+    var forgeSoldiers;
+    
+    fortressRating = FortressRating(params, false);
+    patrolRating = ArmyRating(params, false, params.patrolSize);
+    if (params.enhDroids) {
+        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
+    } else {
+        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
+    }
+    trainingTime = TrainingTime(params);
+    forgeSoldiers = ForgeSoldiers(params);
+
+    self.postMessage({
+        cmd: 'info',
+        fortressRating: fortressRating,
+        patrolRating: patrolRating,
+        patrolRatingDroids: patrolRatingDroids,
+        trainingTime: trainingTime,
+        forgeSoldiers: forgeSoldiers
+    });
+}
+
+
+
 function SimRun(params, sim, stats) {
     const ticks_per_bloodwar = 20;
     if (!sim || sim.done) {

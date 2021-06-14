@@ -272,9 +272,272 @@ function SetupSimWorkers () {
     console.log("Sim Workers: " + gSimWorkers.length);
 }
 
+/*
+    Every message has a 'cmd' field to specify the message type.  For each cmd, there may be other fields
+
+    Messages FROM main TO worker:
+        'info'                  - Request info for updating the UI for army rating, training rate, etc.
+            params                  - Sim parameters
+        'start'                 - Start a simulation
+            id                      - Unique sim ID number
+            params                  - Sim parameters
+        'stop'                  - Stop the simulation
+        
+    Messages FROM worker TO main:
+        'info'                  - Response to info request
+            fortressRating          - Fortress combat rating
+            patrolRating            - Normal patrol combat rating
+            patrolRatingDroids      - Droid-augmented patrol combat rating
+            trainingTime            - Soldier training time in ticks per soldier
+            forgeSoldiers           - Number of soldiers required to run the Soul Forge
+        'progress'              - Update 
+        'done'                  - Simulation finished
+            id                      - Unique sim ID number
+            stats                   - Result stats
+        'stopped'               - Simulation stopped after a stop request
+            id                      - Unique sim ID number
+            stats                   - Partial result stats
+*/
+
+
 function SimWorkerHandler(e) {
-    
+    switch (e.data.cmd) {
+        case 'info':
+            UpdateUIStrings(e);
+            break;
+
+        case 'progress':
+            break;
+
+        case 'done':
+            break;
+
+        case 'stopped':
+            break;
+
+        default:
+            break;
+    }
 }
+
+/* Update strings in the UI based on info response from worker
+    e.data {
+        fortressRating          - Fortress combat rating
+        patrolRating            - Normal patrol combat rating
+        patrolRatingDroids      - Droid-augmented patrol combat rating
+        trainingTime            - Soldier training time in ticks per soldier
+        forgeSoldiers           - Number of soldiers required to run the Soul Forge
+    }
+*/
+function UpdateUIStrings(e) {
+    ratingStr = "";
+    if (gParams.cautious) {
+        ratingStr += "~ ";
+    }    
+    if (gParams.patrols == 0) {
+        ratingStr += e.data.patrolRating;
+    } else if (gParams.droids >= gParams.patrols) {
+        ratingStr += e.data.patrolRatingDroids;
+    } else if (gParams.droids > 0) {
+        ratingStr += e.data.patrolRating + " / " + e.data.patrolRatingDroids;
+    } else {
+        ratingStr += e.data.patrolRating;
+    }
+    $('#patrolRating').html(ratingStr);
+    
+    
+    if (gParams.cautious) {
+        ratingStr = "~ " + e.data.fortressRating;
+    } else {
+        ratingStr = e.data.fortressRating;
+    }
+    $('#fortressRating').html(ratingStr);
+    
+    /* Get the training time, then round up to next tick and convert to seconds */
+    trainingTime = e.data.trainingTime;
+    trainingTime = Math.ceil(trainingTime) / 4;
+    if (gParams.hyper) {
+        trainingTime *= 0.95;
+    }
+    if (gParams.slow) {
+        trainingTime *= 1.1;
+    }
+    let trainingRate = 3600 / trainingTime;
+    let trainingStr = trainingTime.toFixed(2) + "sec&nbsp;&nbsp;&nbsp;" + trainingRate.toFixed(1);
+    var mercRate;
+    switch (gParams.hireMercs) {
+        case 'script':
+        case 'governor':
+            mercRate = 240;
+            if (gParams.hyper) {
+                mercRate /= 0.95;
+            }
+            if (gParams.slow) {
+                mercRate /= 1.1;
+            }
+            trainingStr += "+" + Math.round(mercRate);
+            break;
+        case 'autoclick':
+            mercRate = 240;
+            let optimalClickerInterval = 15;
+            if (gParams.hyper) {
+                optimalClickerInterval /= 0.95;
+                mercRate /= 0.95;
+            }
+            if (gParams.slow) {
+                optimalClickerInterval /= 1.1;
+                mercRate /= 1.1;
+            }
+            if (gParams.clickerInterval > optimalClickerInterval) {
+                mercRate = (3600 / gParams.clickerInterval);
+            }
+            trainingStr += "+" + Math.round(mercRate);
+            break;
+        default:
+            break;
+    }
+    trainingStr += "/hour"
+    $('#trainingRate').html(trainingStr);
+    
+    if (gParams.soulForge == 2) {
+        $('#forgeSoldiers').html(e.data.forgeSoldiers + " / " + e.data.forgeSoldiers + " soldiers");
+    } else {
+        $('#forgeSoldiers').html("0 / " + e.data.forgeSoldiers + " soldiers");
+    }
+}
+
+/* Duplicating these for now.  It's used in ConvertSave(), which I didn't account for when
+   coming up with the info request solution for UI updates.  */
+function ForgeSoldiers(params) {
+    let soldiers = Math.round(650 / ArmyRating(params, false, 1));
+    let gunValue = params.advGuns ? 2 : 1;
+    
+    soldiers = Math.max(0, soldiers - params.guns * gunValue);
+    
+    return soldiers;
+}
+function ArmyRating(params, sim, size, wound) {
+    var rating = size;
+    var wounded = 0;
+    
+    if (wound != undefined) {
+        wounded = wound;
+    } else if (sim) {
+        if (size > sim.soldiers - sim.wounded) {
+            wounded = size - (sim.soldiers - sim.wounded);
+        }
+    }
+    
+    if (params.rhinoRage) {
+        rating += wounded / 2;
+    } else {
+        rating -= wounded / 2;
+    }
+
+    /* Game code subtracts 1 for tech >= 5 to skip bunk beds.  Here that gets skipped in the HTML selection values themselves */
+    let weaponTech = params.weaponTech;
+
+    if (weaponTech > 1 && params.sniper) {
+        /* Sniper bonus doesn't apply to the base value of 1 or the Cyborg Soldiers upgrade */
+        weaponTech -= params.weaponTech >= 10 ? 2 : 1;
+        weaponTech *= 1 + (0.08 * weaponTech);
+        weaponTech += params.weaponTech >= 10 ? 2 : 1;
+    }
+    
+    rating *= weaponTech;
+    
+    if (sim && params.rhinoRage) {
+        rating *= 1 + (0.01 * sim.wounded);
+    }
+    if (params.puny) {
+        rating *= 0.9;
+    }
+    if (params.claws) {
+        rating *= 1.25;
+    }
+    if (params.chameleon) {
+        rating *= 1.2;
+    }
+    if (params.cautious) {
+        if (sim) {
+            /* Not doing a full weather sim here, but it rains about 21.6% of the time
+               in most biomes */
+            if (Rand(0, 1000) < 216) {
+                rating *= 0.9;
+            }
+        } else {
+            /* Approximate 0.9784 multiplier (1 * (1 - 0.216) + 0.9 * .216) */
+            rating *= 0.9784;
+        }
+    }
+
+    if (params.apexPredator) {
+        rating *= 1.3;
+    }
+    if (params.fiery) {
+        rating *= 1.65;
+    }
+    if (params.sticky) {
+        rating *= 1.15;
+    }
+    if (params.pathetic) {
+        rating *= 0.75;
+    }
+    if (params.holy) {
+        rating *= 1.5;
+    }
+    if (params.rage) {
+        rating *= 1.05;
+    }
+    if (params.magic) {
+        rating *= 0.75;
+    }
+    if (params.banana) {
+        rating *= 0.8;
+    }
+    if (params.governor == "soldier") {
+        rating *= 1.05;
+    }
+
+    rating *= 1 + (params.tactical * 0.05);
+    
+    rating *= 1 + (params.temples * 0.01);
+    
+    rating *= 1 + (params.warRitual / (params.warRitual + 75));
+    
+    if (params.parasite) {
+        if (size == 1) {
+            rating += 2;
+        } else if (size > 1) {
+            rating += 4;
+        }
+    }
+    
+    if (params.government == "autocracy") {
+        rating *= 1.35;
+    }
+    
+    rating = Math.floor(rating);
+    
+    if (params.hivemind) {
+        if (size <= 10) {
+            rating *= (size * 0.05) + 0.5;
+        } else {
+            rating *= 1 + (1 - (0.99 ** (size - 10)));
+        }
+    }
+    
+    if (params.cannibal) {
+        rating *= 1.15;
+    }
+    
+    if (params.government == "democracy") {
+        rating *= 0.95;
+    }
+    
+    return Math.round(rating);
+}
+
 
 function OnChange() {
     var patrolRating;
@@ -304,7 +567,7 @@ function OnChange() {
     /* Request info from a worker.  It will reply with Army rating, training rate, etc.
        This is mainly to avoid duplicating the code for calculating these things. */
     if (gSimWorkers[0]) {
-        gSimWorkers[0].postMessage({cmd: 'info'});
+        gSimWorkers[0].postMessage({cmd: 'info', params: gParams});
     }
     
     ShowMercOptions();

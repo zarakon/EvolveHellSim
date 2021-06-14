@@ -235,8 +235,13 @@ function SimResults(gParams, stats) {
 
 
 function SetupSimWorkers () {
+    var prevWorkers;
     var workersRequired;
     var i;
+    
+    if (gSimWorkers) {
+        prevWorkers = gSimWorkers.length;
+    }
     
     if (Number.isFinite(gParams.cpuThreads)) {
         workersRequired = gParams.cpuThreads;
@@ -269,8 +274,11 @@ function SetupSimWorkers () {
         gSimWorkers.splice(workersRequired, (gSimWorkers.length - workersRequired));
     }
     
-    console.log("Sim Workers: " + gSimWorkers.length);
+    if (gSimWorkers.length != prevWorkers) {
+        console.log("Sim Workers: " + gSimWorkers.length);
+    }
 }
+
 
 /*
     Every message has a 'cmd' field to specify the message type.  For each cmd, there may be other fields

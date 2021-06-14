@@ -307,6 +307,8 @@ function OnChange() {
         gSimWorkers[0].postMessage({cmd: 'info'});
     }
     
+    ShowMercOptions();
+    
     /* Round dark energy to 3 places */
     $('#darkEnergy')[0].value = gParams.darkEnergy = +gParams.darkEnergy.toFixed(3);
     
@@ -326,7 +328,68 @@ function OnChange() {
 }
 
 function ShowMercOptions() {
-    
+    switch (gParams.hireMercs) {
+        case "script":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = false;
+            $('#scriptIncomeDiv')[0].hidden = false;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = false;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = true;
+            $('#mercsBlank5')[0].hidden = true;
+            break;
+
+        case "autoclick":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = false;
+            $('#mercBufferDiv')[0].hidden = true;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = false;
+            $('#mercsBlank5')[0].hidden = false;
+            break;
+
+        case "governor":
+            $('#moneyIncomeDiv')[0].hidden = false;
+            $('#moneyCapDiv')[0].hidden = false;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = false;
+            $('#mercReserveDiv')[0].hidden = false;
+            $('#mercsBlank1')[0].hidden = true;
+            $('#mercsBlank2')[0].hidden = true;
+            $('#mercsBlank3')[0].hidden = true;
+            $('#mercsBlank4')[0].hidden = true;
+            $('#mercsBlank5')[0].hidden = false;
+            break;
+
+        default:
+            gParams.hireMercs = 'off';
+            $('#moneyIncomeDiv')[0].hidden = true;
+            $('#moneyCapDiv')[0].hidden = true;
+            $('#scriptCapThresholdDiv')[0].hidden = true;
+            $('#scriptIncomeDiv')[0].hidden = true;
+            $('#clickerIntervalDiv')[0].hidden = true;
+            $('#mercBufferDiv')[0].hidden = true;
+            $('#mercReserveDiv')[0].hidden = true;
+            $('#mercsBlank1')[0].hidden = false;
+            $('#mercsBlank2')[0].hidden = false;
+            $('#mercsBlank3')[0].hidden = false;
+            $('#mercsBlank4')[0].hidden = false;
+            $('#mercsBlank5')[0].hidden = false;
+            break;
+    } 
 }
 
 function LogResult(stats, str) {

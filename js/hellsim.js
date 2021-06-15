@@ -1,4 +1,5 @@
 var gStop = false;
+var gCheckForge = false;
 var gSimWorkers = [];
 var gParams = {};
 
@@ -407,145 +408,30 @@ function UpdateUIStrings(e) {
     trainingStr += "/hour"
     $('#trainingRate').html(trainingStr);
     
+    /* First info return after importing a save, we might need to adjust the soul forge status.
+       This is because the save file doesn't directly tell us whether the forge is fully manned
+       or not, and we have to use the ForgeSoldiers() and ArmyRating() functions from the worker
+       to figure it out. */
+    if (gCheckForge) {
+        if (gParams.defenders >= e.data.forgeSoldiers) {
+            $('#soulForge')[0].value = 2;
+            gParams.soulForge = 2;
+            $('#defenders')[0].value -= e.data.forgeSoldiers;
+            gParams.defenders -= e.data.forgeSoldiers;
+        } else {
+            $('#soulForge')[0].value = 1;
+            gParams.soulForge = 1;
+        }
+        gCheckForge = false;
+    }
+
     if (gParams.soulForge == 2) {
         $('#forgeSoldiers').html(e.data.forgeSoldiers + " / " + e.data.forgeSoldiers + " soldiers");
     } else {
         $('#forgeSoldiers').html("0 / " + e.data.forgeSoldiers + " soldiers");
     }
+
 }
-
-/* Duplicating these for now.  It's used in ConvertSave(), which I didn't account for when
-   coming up with the info request solution for UI updates.  */
-function ForgeSoldiers(params) {
-    let soldiers = Math.round(650 / ArmyRating(params, false, 1));
-    let gunValue = params.advGuns ? 2 : 1;
-    
-    soldiers = Math.max(0, soldiers - params.guns * gunValue);
-    
-    return soldiers;
-}
-function ArmyRating(params, sim, size, wound) {
-    var rating = size;
-    var wounded = 0;
-    
-    if (wound != undefined) {
-        wounded = wound;
-    } else if (sim) {
-        if (size > sim.soldiers - sim.wounded) {
-            wounded = size - (sim.soldiers - sim.wounded);
-        }
-    }
-    
-    if (params.rhinoRage) {
-        rating += wounded / 2;
-    } else {
-        rating -= wounded / 2;
-    }
-
-    /* Game code subtracts 1 for tech >= 5 to skip bunk beds.  Here that gets skipped in the HTML selection values themselves */
-    let weaponTech = params.weaponTech;
-
-    if (weaponTech > 1 && params.sniper) {
-        /* Sniper bonus doesn't apply to the base value of 1 or the Cyborg Soldiers upgrade */
-        weaponTech -= params.weaponTech >= 10 ? 2 : 1;
-        weaponTech *= 1 + (0.08 * weaponTech);
-        weaponTech += params.weaponTech >= 10 ? 2 : 1;
-    }
-    
-    rating *= weaponTech;
-    
-    if (sim && params.rhinoRage) {
-        rating *= 1 + (0.01 * sim.wounded);
-    }
-    if (params.puny) {
-        rating *= 0.9;
-    }
-    if (params.claws) {
-        rating *= 1.25;
-    }
-    if (params.chameleon) {
-        rating *= 1.2;
-    }
-    if (params.cautious) {
-        if (sim) {
-            /* Not doing a full weather sim here, but it rains about 21.6% of the time
-               in most biomes */
-            if (Rand(0, 1000) < 216) {
-                rating *= 0.9;
-            }
-        } else {
-            /* Approximate 0.9784 multiplier (1 * (1 - 0.216) + 0.9 * .216) */
-            rating *= 0.9784;
-        }
-    }
-
-    if (params.apexPredator) {
-        rating *= 1.3;
-    }
-    if (params.fiery) {
-        rating *= 1.65;
-    }
-    if (params.sticky) {
-        rating *= 1.15;
-    }
-    if (params.pathetic) {
-        rating *= 0.75;
-    }
-    if (params.holy) {
-        rating *= 1.5;
-    }
-    if (params.rage) {
-        rating *= 1.05;
-    }
-    if (params.magic) {
-        rating *= 0.75;
-    }
-    if (params.banana) {
-        rating *= 0.8;
-    }
-    if (params.governor == "soldier") {
-        rating *= 1.05;
-    }
-
-    rating *= 1 + (params.tactical * 0.05);
-    
-    rating *= 1 + (params.temples * 0.01);
-    
-    rating *= 1 + (params.warRitual / (params.warRitual + 75));
-    
-    if (params.parasite) {
-        if (size == 1) {
-            rating += 2;
-        } else if (size > 1) {
-            rating += 4;
-        }
-    }
-    
-    if (params.government == "autocracy") {
-        rating *= 1.35;
-    }
-    
-    rating = Math.floor(rating);
-    
-    if (params.hivemind) {
-        if (size <= 10) {
-            rating *= (size * 0.05) + 0.5;
-        } else {
-            rating *= 1 + (1 - (0.99 ** (size - 10)));
-        }
-    }
-    
-    if (params.cannibal) {
-        rating *= 1.15;
-    }
-    
-    if (params.government == "democracy") {
-        rating *= 0.95;
-    }
-    
-    return Math.round(rating);
-}
-
 
 function OnChange() {
     var patrolRating;
@@ -911,16 +797,9 @@ function ConvertSave(save) {
         $('#soulForge')[0].value = 0;
     }
 
-    /* Update for Soul Forge */
-    GetParams();
     if (save.portal && save.portal.fortress && save.portal.soul_forge && save.portal.soul_forge.on >= 1) {
-        let forgeSoldiers = ForgeSoldiers(gParams);
-        if (gParams.defenders >= forgeSoldiers) {
-            $('#soulForge')[0].value = 2;
-            $('#defenders')[0].value -= forgeSoldiers;
-        } else {
-            $('#soulForge')[0].value = 1;
-        }
+        /* After getting info response from worker, we need to adjust things for the soul forge */
+        gCheckForge = true;
     }
 
     OnChange();

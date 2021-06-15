@@ -1,5 +1,4 @@
 var gStop = false;
-var gCheckForge = false;
 var gSimWorkers = [];
 var gParams = {};
 
@@ -408,23 +407,18 @@ function UpdateUIStrings(e) {
     trainingStr += "/hour"
     $('#trainingRate').html(trainingStr);
     
-    /* First info return after importing a save, we might need to adjust the soul forge status.
-       This is because the save file doesn't directly tell us whether the forge is fully manned
-       or not, and we have to use the ForgeSoldiers() and ArmyRating() functions from the worker
-       to figure it out. */
-    if (gCheckForge) {
-        if (gParams.defenders >= e.data.forgeSoldiers) {
-            $('#soulForge')[0].value = 2;
-            gParams.soulForge = 2;
-            $('#defenders')[0].value -= e.data.forgeSoldiers;
-            gParams.defenders -= e.data.forgeSoldiers;
-        } else {
-            $('#soulForge')[0].value = 1;
-            gParams.soulForge = 1;
-        }
-        gCheckForge = false;
+    /* It's impossible for the Soul Forge to be powered and unmanned (value 1) if there are
+       more defenders than the forge requires.  This situation will happen any time a save
+       is imported with the forge on because the save doesn't directly state whether it's
+       manned, and we can't figure out out until we have the forgeSoldiers calculation. */
+    if (gParams.soulForge == 1 && gParams.defenders >= e.data.forgeSoldiers) {
+        $('#soulForge')[0].value = 2;
+        $('#defenders')[0].value -= e.data.forgeSoldiers;
+        /* This will cause another info request, which will defer to this function again, but
+           with updated parameters.  Primary reason is that the fortressRating needs to be
+           recalculated after changing the defender count. */
+        OnChange();
     }
-
     if (gParams.soulForge == 2) {
         $('#forgeSoldiers').html(e.data.forgeSoldiers + " / " + e.data.forgeSoldiers + " soldiers");
     } else {
@@ -779,7 +773,7 @@ function ConvertSave(save) {
         $('#guns')[0].value = save.portal.gun_emplacement ? save.portal.gun_emplacement.on : 0;
         $('#soulAttractors')[0].value = save.portal.soul_attractor ? save.portal.soul_attractor.on : 0;
         $('#gateTurrets')[0].value = save.portal.gate_turret ? save.portal.gate_turret.on : 0;
-        $('#soulForge')[0].value = 0; /* Update later */
+        $('#soulForge')[0].value = save.portal.soul_forge ? save.portal.soul_forge.on : 0; /* Refine later in UpdateUIStrings() */
     } else {
         $('#patrols')[0].value = 0;
         $('#patrolSize')[0].value = 0;
@@ -795,11 +789,6 @@ function ConvertSave(save) {
         $('#soulAttractors')[0].value = 0;
         $('#gateTurrets')[0].value = 0;
         $('#soulForge')[0].value = 0;
-    }
-
-    if (save.portal && save.portal.fortress && save.portal.soul_forge && save.portal.soul_forge.on >= 1) {
-        /* After getting info response from worker, we need to adjust things for the soul forge */
-        gCheckForge = true;
     }
 
     OnChange();

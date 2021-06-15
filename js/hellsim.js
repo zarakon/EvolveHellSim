@@ -1,6 +1,16 @@
 var gStop = false;
 var gSimWorkers = [];
 var gParams = {};
+var gSimParams = {};
+var gSim = {
+    startTime: 0,
+    simsActive: 0,
+    simsDone: 0,
+    currentSim: 0,
+    progress: 0,
+    stats: {},
+    params: {}
+};
 
 function Simulate() {
     $('#result').val("");
@@ -14,17 +24,40 @@ function Simulate() {
     $('#paramsForm').unbind("submit");
     $('#paramsForm').submit(function(event) {
         event.preventDefault();
-        gStop = true;
+        SimCancel();
     });
 
     GetParams();
+    /* Make a copy of gParams so that the sim params don't change if the user changes something in the UI.
+       Shallow copy should be fine */
+    gSim.params = Object.assign({}, gParams);
     
-    var stats = {
+    gSim.stats = InitStats(gSim.params);
+    gSim.startTime = Date.now();
+    gSim.progress = 0;
+    gSim.simsActive = 0;
+    gSim.simsDone = 0;
+    gSim.currentSim = 0;
+    
+    gStop = false;
+    
+    /* Begin sims on all the workers */
+    for (var i = 0; i < gSimWorkers.length && i < gSim.params.sims; i++) {
+        gSimWorkers[i].postMessage({
+            cmd: 'start',
+            id: gSim.currentSim,
+            params: gSim.params,
+            stats: InitStats(gSim.params)
+        });
+        gSim.currentSim++;
+        gSim.simsActive++;
+    }
+}
+
+function InitStats(params) {
+    return {
         outputStr: "",
-        startTime: 0,
         ticks: 0,
-        tickLength: 0,
-        simsDone: 0,
         patrolGems: 0,
         forgeGems: 0,
         gunGems: 0,
@@ -68,52 +101,46 @@ function Simulate() {
         forgeSouls: 0,
         mercCosts: 0,
         mercsHired: 0,
-        mercMaxPrice: 0,
+        maxMercPrice: 0,
         minMoney: params.moneyCap,
     };
-    
-    stats.tickLength = 250;
-    if (params.hyper) {
-        stats.tickLength *= 0.95;
-    }
-    if (params.slow) {
-        stats.tickLength *= 1.1;
-    }
-    
-    stats.startTime = Date.now();
-    
-    SimScheduler(params, false, stats);
 }
 
-function SimScheduler(params, sim, stats) {
-    if (gStop) {
-        SimCancel(params, stats);
-    } else if (stats.simsDone < params.sims) {
-        setTimeout(function() {
-            SimRun(params, sim, stats);
-        }, 0);
-    } else {
-        SimResults(params, stats);
+function MergeStats(totalStats, newStats) {
+    for (const key in newStats) {
+        if (key.match(/^min(?=[A-Z])/)) {
+            if (newStats[key] < totalStats[key]) {
+                totalStats[key] = newStats[key];
+            }
+        } else if (key.match(/^max(?=[A-Z])/)) {
+            if (newStats[key] > totalStats[key]) {
+                totalStats[key] = newStats[key];
+            }
+        } else {
+            totalStats[key] += newStats[key];
+        }
     }
-    UpdateProgressBar(params, sim, stats);
 }
 
-function UpdateProgressBar(params, sim, stats) {
-    let progressPct = stats.simsDone / params.sims * 100.0;
-    if (sim && !sim.done) {
-        let partialProgress = (sim.tick / sim.ticks) / params.sims * 100.0;
-        progressPct += partialProgress;
+function UpdateProgressBar(increment) {
+    let newProgress = gSim.progress + increment;
+    let oldProgressPct = gSim.progress / gSim.params.sims;
+    let newProgressPct = newProgress / gSim.params.sims;
+    if (Math.floor(newProgressPct) != Math.floor(oldProgressPct)) {
+        $('#simProgress').attr("aria-valuenow",Math.floor(newProgressPct));
+        $('#simProgress').css("width", newProgressPct + "%");
     }
-    $('#simProgress').attr("aria-valuenow",Math.floor(progressPct));
-    $('#simProgress').css("width", progressPct + "%");
+    gSim.progress = newProgress;
 }
 
 
 function SimCancel(params, stats) {
-    console.log("Canceled " + Date.now());
-    LogResult(stats, "!!! Canceled !!!\n\n");
-    SimResults(params, stats);
-    gStop = false;
+    gStop = true;
+    $('#simButton').text("Stopping");
+    $('#simButton').attr("disabled", true);
+    for (let i = 0; i < gSimWorkers.length; i++) {
+        gSimWorkers[i].postMessage({cmd: 'stop'});
+    }
 }
 
 function SimResults(gParams, stats) {
@@ -160,7 +187,7 @@ function SimResults(gParams, stats) {
         LogResult(stats,
             "Mercs hired per hour: " + (stats.mercsHired / hours).toFixed(1) +
             ", avg cost: " + (stats.mercCosts / stats.mercsHired).toFixed(3) +
-            ", max cost: " + stats.mercMaxPrice.toFixed(3) +
+            ", max cost: " + stats.maxMercPrice.toFixed(3) +
             ", min money " + stats.minMoney.toFixed(2) +
             "\n");
     }
@@ -289,6 +316,7 @@ function SetupSimWorkers () {
         'start'                 - Start a simulation
             id                      - Unique sim ID number
             params                  - Sim parameters
+            stats                   - Pre-initialized statistics
         'stop'                  - Stop the simulation
         
     Messages FROM worker TO main:
@@ -298,7 +326,8 @@ function SetupSimWorkers () {
             patrolRatingDroids      - Droid-augmented patrol combat rating
             trainingTime            - Soldier training time in ticks per soldier
             forgeSoldiers           - Number of soldiers required to run the Soul Forge
-        'progress'              - Update 
+        'progress'              - Update for progress bar
+            increment               - Progress increment as a percentage of the sim
         'done'                  - Simulation finished
             id                      - Unique sim ID number
             stats                   - Result stats
@@ -307,7 +336,6 @@ function SetupSimWorkers () {
             stats                   - Partial result stats
 */
 
-
 function SimWorkerHandler(e) {
     switch (e.data.cmd) {
         case 'info':
@@ -315,12 +343,15 @@ function SimWorkerHandler(e) {
             break;
 
         case 'progress':
+            UpdateProgressBar(e.data.increment);
             break;
 
         case 'done':
+
             break;
 
         case 'stopped':
+            
             break;
 
         default:
@@ -553,39 +584,6 @@ function LogResult(stats, str) {
     }
 }
 
-function LogVerbose(stats, params, str) {
-    if (!gParams.verbose) return;
-    LogResult(stats, str);
-}
-
-function TimeStr(sim) {
-    let seconds = Math.round(sim.tick * sim.tickLength / 1000);
-    let minutes = Math.floor(seconds / 60);
-    seconds = seconds % 60;
-    let hours = Math.floor(minutes / 60);
-    minutes = minutes % 60;
-    
-    let str = "";
-    
-    if (hours < 100) {
-        str += "0";
-    }
-    if (hours < 10) {
-        str += "0";
-    }
-    str += hours.toString() + ":";
-    if (minutes < 10) {
-        str += "0";
-    }
-    str += minutes.toString() + ":";
-    if (seconds < 10) {
-        str += "0";
-    }
-    str += seconds.toString();
-    
-    return str;
-}
-
 /* Pull parameter values from the form */
 function GetParams() {
     gParams = {};
@@ -634,10 +632,6 @@ function SetParams() {
             }
         }
     }
-}
-
-function Rand(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function ImportSave() {

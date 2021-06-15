@@ -1,3 +1,4 @@
+var gStop = false;
 
 /*
     Every message has a 'cmd' field to specify the message type.  For each cmd, there may be other fields
@@ -8,6 +9,7 @@
         'start'                 - Start a simulation
             id                      - Unique sim ID number
             params                  - Sim parameters
+            stats                   - Pre-initialized statistics
         'stop'                  - Stop the simulation
         
     Messages FROM worker TO main:
@@ -17,7 +19,8 @@
             patrolRatingDroids      - Droid-augmented patrol combat rating
             trainingTime            - Soldier training time in ticks per soldier
             forgeSoldiers           - Number of soldiers required to run the Soul Forge
-        'progress'              - Update 
+        'progress'              - Update for progress bar
+            increment               - Progress increment as a percentage of the sim
         'done'                  - Simulation finished
             id                      - Unique sim ID number
             stats                   - Result stats
@@ -31,14 +34,87 @@ onmessage = function(e) {
             ProvideInfo(e.data.params);
             break;
         case 'start':
+            SimStart(e.data.id, e.data.params, e.data.stats);
             break;
         case 'stop':
+            gStop = true;
             break;
         default:
             break;
     }
     
     return;
+}
+
+function SimStart(id, params, stats) {
+    var tickLength = 250;
+    if (params.hyper) {
+        tickLength *= 0.95;
+    }
+    if (params.slow) {
+        tickLength *= 1.1;
+    }
+    var sim = {
+        id: id,
+        tick: 0,
+        ticks: Math.round(params.hours * 3600 * 1000 / tickLength),
+        tickLength: tickLength,
+        threat: params.threat,
+        patrols: params.patrols,
+        soldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
+        maxSoldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
+        hellSoldiers: params.patrols * params.patrolSize + params.defenders,
+        maxHellSoldiers: params.patrols * params.patrolSize + params.defenders,
+        patrolRating: 0,
+        patrolRatingDroids: 0,
+        wounded: 0,
+        trainingProgress: 0,
+        trainingTime: 0,
+        surveyors: params.surveyors,
+        carRepair: 0,
+        siegeOdds: 999,
+        walls: 100,
+        wallRepair: 0,
+        pity: 0,
+        eventOdds: 999,
+        forgeSouls: 0,
+        money: params.moneyCap,
+        mercCounter: 0,
+        clickerCounter: 0,
+        lastEvent: -1,
+        done: false
+    };
+    if (params.soulForge == 2) {
+        let forgeSoldiers = ForgeSoldiers(params);
+        sim.soldiers += forgeSoldiers;
+        sim.maxSoldiers += forgeSoldiers;
+        sim.hellSoldiers += forgeSoldiers;
+        sim.maxHellSoldiers += forgeSoldiers;
+    }
+    /* Calculate patrol rating and training rate ahead of time for efficiency */
+    sim.patrolRating = ArmyRating(params, false, params.patrolSize);
+    if (params.enhDroids) {
+        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
+    } else {
+        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
+    }
+    sim.trainingTime = TrainingTime(params);
+
+    LogResult(stats, " -- Sim " + sim.id.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
+
+    gStop = false;
+
+    SimScheduler(params, sim, stats);
+}
+
+function SimScheduler(params, sim, stats) {
+    if (gStop) {
+        SimCancel(sim, params, stats);
+    } else {
+        setTimeout(function() {
+            SimRun(sim, params, stats);
+        }, 0);
+    }
 }
 
 function ProvideInfo (params) {
@@ -70,60 +146,12 @@ function ProvideInfo (params) {
 
 
 
-function SimRun(params, sim, stats) {
+function SimRun(sim, params, stats) {
     const ticks_per_bloodwar = 20;
-    if (!sim || sim.done) {
-        sim = {
-            tick: 0,
-            ticks: Math.round(params.hours * 3600 * 1000 / stats.tickLength),
-            tickLength: stats.tickLength,
-            threat: params.threat,
-            patrols: params.patrols,
-            soldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
-            maxSoldiers: params.patrols * params.patrolSize + params.garrison + params.defenders,
-            hellSoldiers: params.patrols * params.patrolSize + params.defenders,
-            maxHellSoldiers: params.patrols * params.patrolSize + params.defenders,
-            patrolRating: 0,
-            patrolRatingDroids: 0,
-            wounded: 0,
-            trainingProgress: 0,
-            trainingTime: 0,
-            surveyors: params.surveyors,
-            carRepair: 0,
-            siegeOdds: 999,
-            walls: 100,
-            wallRepair: 0,
-            pity: 0,
-            eventOdds: 999,
-            forgeSouls: 0,
-            money: params.moneyCap,
-            mercCounter: 0,
-            clickerCounter: 0,
-            lastEvent: -1,
-            done: false,
-        };
-        if (params.soulForge == 2) {
-            let forgeSoldiers = ForgeSoldiers(params);
-            sim.soldiers += forgeSoldiers;
-            sim.maxSoldiers += forgeSoldiers;
-            sim.hellSoldiers += forgeSoldiers;
-            sim.maxHellSoldiers += forgeSoldiers;
-        }
-
-        /* Calculate patrol rating and training rate ahead of time for efficiency */
-        sim.patrolRating = ArmyRating(params, false, params.patrolSize);
-        if (params.enhDroids) {
-            sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
-        } else {
-            sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
-        }
-        sim.trainingTime = TrainingTime(params);
-
-        let simNum = stats.simsDone + 1;
-        LogResult(stats, " -- Sim " + simNum.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
-    }
-    
     var startTime = Date.now();
+    var progress = Math.floor(100 * sim.tick / sim.ticks);
+    var newProgress;
+    var progressIncrement;
     
     while (sim.tick < sim.ticks) {
         if (sim.tick % ticks_per_bloodwar == 0) {
@@ -163,7 +191,7 @@ function SimRun(params, sim, stats) {
         if (sim.soldiers < sim.maxSoldiers) {
             TrainSoldiers(params, sim, stats);
         }
-        sim.money += params.moneyIncome * (stats.tickLength / 1000);
+        sim.money += params.moneyIncome * (sim.tickLength / 1000);
         if (sim.money > params.moneyCap) {
             sim.money = params.moneyCap;
         }
@@ -196,6 +224,15 @@ function SimRun(params, sim, stats) {
         stats.ticks++;
         
         if (sim.tick % ticks_per_bloodwar == 0) {
+            newProgress = Math.floor(100 * sim.tick / sim.ticks);
+            progressIncrement = newProgress - progress;
+            if (progressIncrement >= 1 || newProgress == 100) {
+                self.postMessage({
+                    cmd: 'progress',
+                    increment: progressIncrement
+                });
+                progress = newProgress;
+            }
             /* Only check the time occasionally.  Checking on every tick is bad for performance */
             let msElapsed = Date.now() - startTime;
             if (msElapsed > 50) {
@@ -206,7 +243,7 @@ function SimRun(params, sim, stats) {
         }
         
         if (gStop) {
-            SimCancel(params, stats);
+            SimCancel(sim, params, stats);
             return;
         }
     }
@@ -225,12 +262,21 @@ function SimRun(params, sim, stats) {
     stats.maxPatrolsSurvived = Math.max(sim.patrols, stats.maxPatrolsSurvived);
     
     sim.done = true;
-    stats.simsDone++;
     
-    $('#result')[0].value = stats.outputStr;
-    $('#result').scrollTop($('#result')[0].scrollHeight);
+    /* Report finished results */
+    self.postMessage({
+        cmd: 'done',
+        id: sim.id,
+        stats: stats
+    });
+}
 
-    SimScheduler(params, sim, stats);
+function SimCancel(sim, params, stats) {
+    self.postMessage({
+        cmd: 'stopped',
+        id: sim.id,
+        stats: stats
+    });
 }
 
 
@@ -734,7 +780,7 @@ function TryBuyMerc(params, sim, stats) {
             break;
         case "autoclick": /* Autoclick */
             sim.clickerCounter++;
-            if ((sim.clickerCounter * stats.tickLength) / 1000 < params.clickerInterval) {
+            if ((sim.clickerCounter * sim.tickLength) / 1000 < params.clickerInterval) {
                 return false;
             } else {
                 sim.clickerCounter = 0;
@@ -746,7 +792,7 @@ function TryBuyMerc(params, sim, stats) {
         default: return false;
     }
     
-    var price = MercPrice(sim, stats);
+    var price = MercPrice(params, sim, stats);
     if (price > sim.money) {
         return false;
     }
@@ -782,14 +828,14 @@ function TryBuyMerc(params, sim, stats) {
     sim.mercCounter++;
     stats.mercsHired++;
 
-    if (price > stats.mercMaxPrice) {
-        stats.mercMaxPrice = price;
+    if (price > stats.maxMercPrice) {
+        stats.maxMercPrice = price;
     }
     
     return true;
 }
     
-function MercPrice(sim, stats) {
+function MercPrice(params, sim, stats) {
     var garrison = sim.soldiers - sim.hellSoldiers;
     var price = Math.round((1.24 ** garrison) * 75) - 50;
     if (price > 25000){
@@ -1114,3 +1160,46 @@ function ForgeSoldiers(params) {
     
     return soldiers;
 }
+
+function Rand(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function LogResult(stats, str) {
+    stats.outputStr += str;
+}
+
+function LogVerbose(stats, params, str) {
+    if (!params.verbose) return;
+    LogResult(stats, str);
+}
+
+function TimeStr(sim) {
+    let seconds = Math.round(sim.tick * sim.tickLength / 1000);
+    let minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    let hours = Math.floor(minutes / 60);
+    minutes = minutes % 60;
+    
+    let str = "";
+    
+    if (hours < 100) {
+        str += "0";
+    }
+    if (hours < 10) {
+        str += "0";
+    }
+    str += hours.toString() + ":";
+    if (minutes < 10) {
+        str += "0";
+    }
+    str += minutes.toString() + ":";
+    if (seconds < 10) {
+        str += "0";
+    }
+    str += seconds.toString();
+    
+    return str;
+}
+
+

@@ -7,7 +7,8 @@ var gStop = false;
         'info'                  - Request info for updating the UI for army rating, training rate, etc.
             params                  - Sim parameters
         'start'                 - Start a simulation
-            id                      - Unique sim ID number
+            id                      - Worker index ID
+            simId                   - Sim number
             params                  - Sim parameters
             stats                   - Pre-initialized statistics
         'stop'                  - Stop the simulation
@@ -22,10 +23,9 @@ var gStop = false;
         'progress'              - Update for progress bar
             increment               - Progress increment as a percentage of the sim
         'done'                  - Simulation finished
-            id                      - Unique sim ID number
+            id                      - Worker index ID
             stats                   - Result stats
         'stopped'               - Simulation stopped after a stop request
-            id                      - Unique sim ID number
             stats                   - Partial result stats
 */
 onmessage = function(e) {
@@ -34,7 +34,7 @@ onmessage = function(e) {
             ProvideInfo(e.data.params);
             break;
         case 'start':
-            SimStart(e.data.id, e.data.params, e.data.stats);
+            SimStart(e.data.id, e.data.simId, e.data.params, e.data.stats);
             break;
         case 'stop':
             gStop = true;
@@ -46,7 +46,7 @@ onmessage = function(e) {
     return;
 }
 
-function SimStart(id, params, stats) {
+function SimStart(id, simId, params, stats) {
     var tickLength = 250;
     if (params.hyper) {
         tickLength *= 0.95;
@@ -56,6 +56,7 @@ function SimStart(id, params, stats) {
     }
     var sim = {
         id: id,
+        simId: simId,
         tick: 0,
         ticks: Math.round(params.hours * 3600 * 1000 / tickLength),
         tickLength: tickLength,
@@ -100,7 +101,7 @@ function SimStart(id, params, stats) {
     }
     sim.trainingTime = TrainingTime(params);
 
-    LogResult(stats, " -- Sim " + sim.id.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
+    LogResult(stats, " -- Sim " + sim.simId.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
 
     gStop = false;
 
@@ -274,7 +275,6 @@ function SimRun(sim, params, stats) {
 function SimCancel(sim, params, stats) {
     self.postMessage({
         cmd: 'stopped',
-        id: sim.id,
         stats: stats
     });
 }

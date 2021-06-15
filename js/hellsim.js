@@ -47,13 +47,16 @@ function Simulate() {
     
     /* Begin sims on all the workers */
     for (var i = 0; i < gSimWorkers.length && i < gSim.params.sims; i++) {
+        gSim.currentSim++;
         gSimWorkers[i].postMessage({
             cmd: 'start',
-            id: gSim.currentSim,
+            id: i,
+            simId: gSim.currentSim,
             params: gSim.params,
             stats: InitStats(gSim.params)
         });
-        gSim.currentSim++;
+        console.log("Starting sim " + gSim.currentSim + " on worker " + i);
+        
         gSim.simsActive++;
     }
 }
@@ -147,13 +150,22 @@ function SimCancel(params, stats) {
     }
 }
 
-function SimResults(gParams, stats) {
-    let ticksPerHour = stats.tickLength / 1000 / 3600;
-    let hours = (stats.ticks * stats.tickLength / 1000) / 3600;
-    let maxSoldiers = gParams.patrols * gParams.patrolSize + gParams.defenders + gParams.garrison;
+function SimResults() {
+    let params = gSim.params;
+    let stats = gSim.stats;
+    let tickLength = 250;
+    if (params.hyper) {
+        tickLength *= 0.95;
+    }
+    if (params.slow) {
+        tickLength *= 1.1;
+    }
+    let ticksPerHour = tickLength / 1000 / 3600;
+    let hours = (stats.ticks * tickLength / 1000) / 3600;
+    let maxSoldiers = params.patrols * params.patrolSize + params.defenders + params.garrison;
     
     LogResult(stats, " -- Results --\n");
-    LogResult(stats, "Sims:  " + stats.simsDone +
+    LogResult(stats, "Sims:  " + gSim.simsDone +
             ",  wall failures: " + stats.wallFails + 
             (stats.wallFails ? " (avg " + (stats.wallFailTicks * ticksPerHour / stats.wallFails).toFixed(1) + " hrs)" : "") +
             ",  patrol failures: " + stats.patrolFails +
@@ -179,7 +191,7 @@ function SimResults(gParams, stats) {
             ",  max: " + stats.maxPostFightThreat +
             "\n");
     LogResult(stats, "Soldiers killed per hour: " + (stats.soldiersKilled / hours).toFixed(1));
-    if (gParams.revive) {
+    if (params.revive) {
         LogResult(stats,
             ", after revives: " + ((stats.soldiersKilled - stats.soldiersRevived) / hours).toFixed(1)); 
     }
@@ -187,7 +199,7 @@ function SimResults(gParams, stats) {
             ",  per bloodwar: " + (stats.soldiersKilled / stats.bloodWars).toFixed(3) +
             ",  in ambushes: " + (stats.ambushDeaths / stats.soldiersKilled * 100).toFixed(1) + "%" +
             "\n");
-    if (gParams.hireMercs != "off") {
+    if (params.hireMercs != "off") {
         LogResult(stats,
             "Mercs hired per hour: " + (stats.mercsHired / hours).toFixed(1) +
             ", avg cost: " + (stats.mercCosts / stats.mercsHired).toFixed(3) +
@@ -195,24 +207,24 @@ function SimResults(gParams, stats) {
             ", min money " + stats.minMoney.toFixed(2) +
             "\n");
     }
-    LogResult(stats, "Patrols survived (of " + gParams.patrols +
-            ")  avg: " + (stats.totalPatrolsSurvived / stats.simsDone).toFixed(1) +
+    LogResult(stats, "Patrols survived (of " + params.patrols +
+            ")  avg: " + (stats.totalPatrolsSurvived / gSim.simsDone).toFixed(1) +
             ",  min: " + stats.minPatrolsSurvived +
             ",  max: " + stats.maxPatrolsSurvived +
             "\n");
     LogResult(stats, "Surveyors avg: " + (stats.totalSurveyors / stats.ticks).toFixed(1) +
-            " (" + ((stats.totalSurveyors / stats.ticks) / gParams.surveyors * 100).toFixed(1) + "%)" +
-            ",  min " + stats.minSurveyors + " of " + gParams.surveyors +
+            " (" + ((stats.totalSurveyors / stats.ticks) / params.surveyors * 100).toFixed(1) + "%)" +
+            ",  min " + stats.minSurveyors + " of " + params.surveyors +
             "\n");
     LogResult(stats, "Hunting Garrison avg: " + (stats.totalGarrison / stats.ticks).toFixed(1) +
-            " of " + gParams.garrison +
-            " (" + ((stats.totalGarrison / stats.ticks) / gParams.garrison * 100).toFixed(1) + "%)" +
+            " of " + params.garrison +
+            " (" + ((stats.totalGarrison / stats.ticks) / params.garrison * 100).toFixed(1) + "%)" +
             "\n");
     LogResult(stats, "Walls avg: " + (stats.totalWalls / stats.bloodWars).toFixed(1) +
             ",  min " + stats.minWalls +
             "\n");
     
-    if (gParams.extraResults) {
+    if (params.extraResults) {
         LogResult(stats, "Blood wars:  " + stats.bloodWars + "\n");
         LogResult(stats, "Ambushes:    " + stats.ambushes +
             ",  per hour: " + (stats.ambushes / hours).toFixed(1) +
@@ -241,8 +253,8 @@ function SimResults(gParams, stats) {
         LogResult(stats, "Soul Forge on-time: " + ((stats.forgeOn / stats.bloodWars) * 100).toFixed(1) + "%" +
             ", souls per hour: " + (stats.forgeSouls / hours).toFixed(0) +
             "\n");
-        LogResult(stats, "Total sim time: " + ((Date.now() - stats.startTime) / 1000).toFixed(1) + " seconds.  " +
-            "Sim ticks per second: " + ((stats.ticks / ((Date.now() - stats.startTime) / 1000)) / 1000).toFixed(1) + "k" +
+        LogResult(stats, "Total sim time: " + ((Date.now() - gSim.startTime) / 1000).toFixed(1) + " seconds.  " +
+            "Sim ticks per second: " + ((stats.ticks / ((Date.now() - gSim.startTime) / 1000)) / 1000).toFixed(1) + "k" +
             "\n");
     }
 
@@ -320,7 +332,8 @@ function SetupSimWorkers () {
         'info'                  - Request info for updating the UI for army rating, training rate, etc.
             params                  - Sim parameters
         'start'                 - Start a simulation
-            id                      - Unique sim ID number
+            id                      - Worker index ID
+            simId                   - Sim number
             params                  - Sim parameters
             stats                   - Pre-initialized statistics
         'stop'                  - Stop the simulation
@@ -335,10 +348,9 @@ function SetupSimWorkers () {
         'progress'              - Update for progress bar
             increment               - Progress increment as a percentage of the sim
         'done'                  - Simulation finished
-            id                      - Unique sim ID number
+            id                      - Worker index ID
             stats                   - Result stats
         'stopped'               - Simulation stopped after a stop request
-            id                      - Unique sim ID number
             stats                   - Partial result stats
 */
 
@@ -357,7 +369,7 @@ function SimWorkerHandler(e) {
             break;
 
         case 'stopped':
-            
+            HandleSimStopped(e.data.stats);
             break;
 
         default:
@@ -366,7 +378,49 @@ function SimWorkerHandler(e) {
 }
 
 function HandleSimDone(id, stats) {
+    gSim.simsActive--;
+    gSim.simsDone++;
     
+    MergeStats(gSim.stats, stats);
+    
+    console.log("Finished sim on worker " + id);
+
+    if (gSim.simsDone == gSim.params.sims) {
+        /* All done */
+        SimResults();
+        return;
+    }
+    
+    /* Still more to go.  Update results box */
+    $('#result')[0].value = gSim.stats.outputStr;
+    $('#result').scrollTop($('#result')[0].scrollHeight);
+    
+    if (gSim.currentSim < gSim.params.sims && !gStop) {
+        /* Start another sim. */
+        gSim.currentSim++;
+        gSimWorkers[id].postMessage({
+            cmd: 'start',
+            id: id,
+            simId: gSim.currentSim,
+            params: gSim.params,
+            stats: InitStats(gSim.params)
+        });
+        console.log("Starting sim " + gSim.currentSim + " on worker " + id);
+        gSim.simsActive++;
+    }
+}
+
+function HandleSimStopped(stats) {
+    gSim.simsActive--;
+
+    MergeStats(gSim.stats, stats);
+    
+    if (gSim.simsActive == 0) {
+        /* All sims stopped */
+        LogResult(gSim.stats, "!!! Canceled !!!\n\n");
+        SimResults();
+        gStop = false;
+    }
 }
 
 /* Update strings in the UI based on info response from worker

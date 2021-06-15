@@ -28,6 +28,10 @@ function Simulate() {
     });
 
     GetParams();
+    
+    /* Make sure the right number of workers are set up */
+    SetupSimWorkers();
+    
     /* Make a copy of gParams so that the sim params don't change if the user changes something in the UI.
        Shallow copy should be fine */
     gSim.params = Object.assign({}, gParams);
@@ -262,12 +266,12 @@ function SimResults(gParams, stats) {
 
 
 function SetupSimWorkers () {
-    var prevWorkers;
     var workersRequired;
     var i;
     
-    if (gSimWorkers) {
-        prevWorkers = gSimWorkers.length;
+    /* Don't change anything if sim is in progress */
+    if (gSim.simsActive != 0) {
+        return;
     }
     
     if (Number.isFinite(gParams.cpuThreads)) {
@@ -278,6 +282,10 @@ function SetupSimWorkers () {
     
     if (workersRequired > gParams.sims) {
         workersRequired = gParams.sims;
+    }
+    
+    if (workersRequired == gSimWorkers.length) {
+        return;
     }
 
     i = 0;
@@ -301,9 +309,7 @@ function SetupSimWorkers () {
         gSimWorkers.splice(workersRequired, (gSimWorkers.length - workersRequired));
     }
     
-    if (gSimWorkers.length != prevWorkers) {
-        console.log("Sim Workers: " + gSimWorkers.length);
-    }
+    console.log("Sim Workers: " + gSimWorkers.length);
 }
 
 
@@ -347,7 +353,7 @@ function SimWorkerHandler(e) {
             break;
 
         case 'done':
-
+            HandleSimDone(e.data.id, e.data.stats);
             break;
 
         case 'stopped':
@@ -357,6 +363,10 @@ function SimWorkerHandler(e) {
         default:
             break;
     }
+}
+
+function HandleSimDone(id, stats) {
+    
 }
 
 /* Update strings in the UI based on info response from worker

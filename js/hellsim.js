@@ -55,7 +55,6 @@ function Simulate() {
             params: gSim.params,
             stats: InitStats(gSim.params)
         });
-        console.log("Starting sim " + gSim.currentSim + " on worker " + i);
         
         gSim.simsActive++;
     }
@@ -383,8 +382,6 @@ function HandleSimDone(id, stats) {
     
     MergeStats(gSim.stats, stats);
     
-    console.log("Finished sim on worker " + id);
-
     if (gSim.simsDone == gSim.params.sims) {
         /* All done */
         SimResults();
@@ -413,7 +410,6 @@ function HandleSimDone(id, stats) {
             params: gSim.params,
             stats: InitStats(gSim.params)
         });
-        console.log("Starting sim " + gSim.currentSim + " on worker " + id);
         gSim.simsActive++;
     }
 }

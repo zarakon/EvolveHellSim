@@ -391,6 +391,14 @@ function HandleSimDone(id, stats) {
         return;
     }
     
+    if (gStop && gSim.simsActive == 0) {
+        /* All sims stopped */
+        LogResult(gSim.stats, "!!! Canceled !!!\n\n");
+        SimResults();
+        gStop = false;
+        return;
+    }
+    
     /* Still more to go.  Update results box */
     $('#result')[0].value = gSim.stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);

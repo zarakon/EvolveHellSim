@@ -83,6 +83,7 @@ function SimStart(id, simId, params, stats) {
         mercCounter: 0,
         clickerCounter: 0,
         lastEvent: -1,
+        progress: 0,
         done: false
     };
     if (params.soulForge == 2) {
@@ -150,7 +151,6 @@ function ProvideInfo (params) {
 function SimRun(sim, params, stats) {
     const ticks_per_bloodwar = 20;
     var startTime = Date.now();
-    var progress = Math.floor(100 * sim.tick / sim.ticks);
     var newProgress;
     var progressIncrement;
     
@@ -226,13 +226,13 @@ function SimRun(sim, params, stats) {
         
         if (sim.tick % ticks_per_bloodwar == 0) {
             newProgress = Math.floor(100 * sim.tick / sim.ticks);
-            progressIncrement = newProgress - progress;
+            progressIncrement = newProgress - sim.progress;
             if (progressIncrement >= 1 || newProgress == 100) {
                 self.postMessage({
                     cmd: 'progress',
                     increment: progressIncrement
                 });
-                progress = newProgress;
+                sim.progress = newProgress;
             }
             /* Only check the time occasionally.  Checking on every tick is bad for performance */
             let msElapsed = Date.now() - startTime;
@@ -256,6 +256,13 @@ function SimRun(sim, params, stats) {
             "\n");
         LogResult(stats, "Patrols remaining: " + sim.patrols + " out of " + params.patrols + "\n");
         LogResult(stats, "\n");
+    } else {
+        /* Something failed, need to report the rest of the progress for this sim */
+        progressIncrement = 100 - sim.progress;
+        self.postMessage({
+            cmd: 'progress',
+            increment: progressIncrement
+        });
     }
     
     stats.totalPatrolsSurvived += sim.patrols;

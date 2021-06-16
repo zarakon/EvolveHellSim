@@ -634,8 +634,12 @@ function ShowMercOptions() {
             $('#mercsBlank5')[0].hidden = false;
             break;
 
+        case "off":
         default:
+            /* In case of invalid value here, make sure it's set to 'off' */
             gParams.hireMercs = 'off';
+            $('#hireMercs')[0].value = "off";
+
             $('#moneyIncomeDiv')[0].hidden = true;
             $('#moneyCapDiv')[0].hidden = true;
             $('#scriptCapThresholdDiv')[0].hidden = true;

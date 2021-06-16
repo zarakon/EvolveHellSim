@@ -1,4 +1,5 @@
 var gStop = false;
+var gTakeABreak = false;
 
 /*
     Every message has a 'cmd' field to specify the message type.  For each cmd, there may be other fields
@@ -105,6 +106,7 @@ function SimStart(id, simId, params, stats) {
     LogResult(stats, " -- Sim " + sim.simId.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
 
     gStop = false;
+    gTakeABreak = false;
 
     SimScheduler(params, sim, stats);
 }
@@ -150,10 +152,14 @@ function ProvideInfo (params) {
 
 function SimRun(sim, params, stats) {
     const ticks_per_bloodwar = 20;
-    var startTime = Date.now();
     var newProgress;
     var progressIncrement;
     
+    /* Take a break in 50ms */
+    setTimeout(function() {
+        gTakeABreak = true;
+    }, 50);
+
     while (sim.tick < sim.ticks) {
         if (sim.tick % ticks_per_bloodwar == 0) {
             /* Fight demons */
@@ -224,7 +230,7 @@ function SimRun(sim, params, stats) {
         sim.tick++;
         stats.ticks++;
         
-        if (sim.tick % ticks_per_bloodwar == 0) {
+        if (gTakeABreak == true) {
             newProgress = Math.floor(100 * sim.tick / sim.ticks);
             progressIncrement = newProgress - sim.progress;
             if (progressIncrement >= 1 || newProgress == 100) {
@@ -234,13 +240,9 @@ function SimRun(sim, params, stats) {
                 });
                 sim.progress = newProgress;
             }
-            /* Only check the time occasionally.  Checking on every tick is bad for performance */
-            let msElapsed = Date.now() - startTime;
-            if (msElapsed > 50) {
-                /* Yield CPU */
-                SimScheduler(params, sim, stats);
-                return;
-            }
+            /* Yield CPU to allow processing messages that may come from the main thread */
+            SimScheduler(params, sim, stats);
+            return;
         }
         
         if (gStop) {
@@ -248,6 +250,7 @@ function SimRun(sim, params, stats) {
             return;
         }
     }
+
     if (sim.tick >= sim.ticks) {
         LogResult(stats, "Survived!\n");
         LogResult(stats, "Defenders: " + (sim.hellSoldiers - sim.patrols * params.patrolSize) + 

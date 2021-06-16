@@ -261,18 +261,32 @@ function SimResults() {
     $('#result')[0].value = stats.outputStr;
     $('#result').scrollTop($('#result')[0].scrollHeight);
 
-    /* Restore the Simulate button after locking it briefly, to avoid accidentally
-       starting a new sim if the user attempts to press stop just as it finishes */
-    $('#simButton').text("Simulate");
-    $('#simButton').attr("disabled", true);
-    setTimeout(function() {
+    if (!gStop) {
+        /* Restore the Simulate button after locking it briefly, to avoid accidentally
+           starting a new sim if the user attempts to press stop just as it finishes */
+        $('#simButton').text("Simulate");
+        $('#simButton').attr("disabled", true);
+        setTimeout(function() {
+            $('#paramsForm').unbind("submit");
+            $('#paramsForm').submit(function(event) {
+                event.preventDefault();
+                Simulate();
+            });
+            $('#simButton').attr("disabled", false);
+        }, 250);
+    } else {
+        /* User already clicked stop, so just restore the Simulate button immediately */
+        $('#simButton').text("Simulate");
         $('#paramsForm').unbind("submit");
         $('#paramsForm').submit(function(event) {
             event.preventDefault();
             Simulate();
         });
         $('#simButton').attr("disabled", false);
-    }, 250);
+    }
+
+    gStop = false;
+
 }
 
 
@@ -392,7 +406,6 @@ function HandleSimDone(id, stats) {
         /* All sims stopped */
         LogResult(gSim.stats, "!!! Canceled !!!\n\n");
         SimResults();
-        gStop = false;
         return;
     }
     
@@ -417,13 +430,10 @@ function HandleSimDone(id, stats) {
 function HandleSimStopped(stats) {
     gSim.simsActive--;
 
-    MergeStats(gSim.stats, stats);
-    
     if (gSim.simsActive == 0) {
         /* All sims stopped */
         LogResult(gSim.stats, "!!! Canceled !!!\n\n");
         SimResults();
-        gStop = false;
     }
 }
 

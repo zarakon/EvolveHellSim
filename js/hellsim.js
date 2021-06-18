@@ -13,7 +13,6 @@ var gSim = {
 };
 
 function Simulate() {
-    $('#result').val("");
     $('#result').val("Running...\n");
 
     console.log("Simulate " + Date.now());
@@ -131,12 +130,9 @@ function MergeStats(totalStats, newStats) {
 
 function UpdateProgressBar(increment) {
     let newProgress = gSim.progress + increment;
-    let oldProgressPct = gSim.progress / gSim.params.sims;
     let newProgressPct = newProgress / gSim.params.sims;
-    if (Math.floor(newProgressPct) != Math.floor(oldProgressPct)) {
-        $('#simProgress').attr("aria-valuenow",Math.floor(newProgressPct));
-        $('#simProgress').css("width", newProgressPct + "%");
-    }
+    $('#simProgress').attr("aria-valuenow",Math.floor(newProgressPct));
+    $('#simProgress').css("width", newProgressPct + "%");
     gSim.progress = newProgress;
 }
 

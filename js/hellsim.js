@@ -14,6 +14,7 @@ var gSim = {
 
 function Simulate() {
     $('#result').val("");
+    $('#result').val("Running...\n");
 
     console.log("Simulate " + Date.now());
     
@@ -410,15 +411,17 @@ function HandleSimDone(id, stats) {
     }
     
     /* Still more to go.  Update results box */
-    if (gSim.stats.outputStr.length < 4000) {
-        $('#result')[0].value = gSim.stats.outputStr;
-    } else {
-        /* If the results get long, putting the whole thing in the results box starts
-           to make everything go slow. */
-        let idx = gSim.stats.outputStr.lastIndexOf('\n', gSim.stats.outputStr.length - 4000) + 1;
-        $('#result')[0].value = gSim.stats.outputStr.slice(idx);
+    if (!gSim.params.liteMode) {
+        if (gSim.stats.outputStr.length < 4000) {
+            $('#result')[0].value = gSim.stats.outputStr;
+        } else {
+            /* If the results get long, putting the whole thing in the results box starts
+               to make everything go slow. */
+            let idx = gSim.stats.outputStr.lastIndexOf('\n', gSim.stats.outputStr.length - 4000) + 1;
+            $('#result')[0].value = gSim.stats.outputStr.slice(idx);
+        }
+        $('#result').scrollTop($('#result')[0].scrollHeight);
     }
-    $('#result').scrollTop($('#result')[0].scrollHeight);
 
     if (gSim.currentSim < gSim.params.sims && !gStop) {
         /* Start another sim. */

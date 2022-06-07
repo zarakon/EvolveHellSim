@@ -715,6 +715,9 @@ function SetParams() {
                 el[0].checked = gParams[key];
             } else if (el.hasClass('collapser-icon')) {
                 el.text(gParams[key].toString());
+            } else if (el.prop('tagName') === "SELECT" && el.parents('#cTraits').length && typeof(gParams[key]) === "boolean") {
+                /* convert data from before trait ranks */
+                el.val(gParams[key] ? 1 : 0);
             } else {
                 el.val(gParams[key].toString());
             }
@@ -741,43 +744,43 @@ function ConvertSave(save) {
     console.log(save);
     
     /* Fill form fields based on Evolve save data */
-    $('#apexPredator')[0].checked = save.race['apex_predator'] ? true : false;
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
-    $('#armored')[0].checked = save.race['armored'] ? true : false;
     $('#banana')[0].checked = save.race['banana'] ? true : false;
-    $('#beast')[0].checked = save.race['beast'] ? true : false;
-    $('#blurry')[0].checked = save.race['blurry'] ? true : false;
-    $('#brute')[0].checked = save.race['brute'] ? true : false;
-    $('#cannibal')[0].checked = save.race['cannibalize'] ? true : false;
-    $('#cautious')[0].checked = save.race['cautious'] ? true : false;
-    $('#chameleon')[0].checked = save.race['chameleon'] ? true : false;
-    $('#claws')[0].checked = save.race['claws'] ? true : false;
-    $('#diverse')[0].checked = save.race['diverse'] ? true : false;
-    $('#elusive')[0].checked = save.race['elusive'] ? true : false;
-    $('#evil')[0].checked = save.race['evil'] ? true : false;
-    $('#fiery')[0].checked = save.race['fiery'] ? true : false;
-    $('#ghostly')[0].checked = save.race['ghostly'] ? true : false;
-    $('#hivemind')[0].checked = save.race['hivemind'] ? true : false;
-    $('#holy')[0].checked = save.race['holy'] ? true : false;
-    $('#hyper')[0].checked = save.race['hyper'] ? true : false;
-    $('#instincts')[0].checked = save.race['instinct'] ? true : false;
-    $('#kindling')[0].checked = save.race['kindling_kindred'] ? true : false;
     $('#magic')[0].checked = save.race.universe == 'magic' ? true : false;
-    $('#parasite')[0].checked = save.race['parasite'] ? true : false;
-    $('#pathetic')[0].checked = save.race['pathetic'] ? true : false;
-    $('#puny')[0].checked = save.race['puny'] ? true : false;
     $('#rage')[0].checked = save.city.ptrait == 'rage' ? true : false;
-    $('#rhinoRage')[0].checked = save.race['rage'] ? true : false;
-    $('#regenerative')[0].checked = save.race['regenerative'] ? true : false;
-    $('#revive')[0].checked = save.race['revive'] ? true : false;
-    $('#scales')[0].checked = save.race['scales'] ? true : false;
-    $('#slaver')[0].checked = save.race['slaver'] ? true : false;
-    $('#slow')[0].checked = save.race['slow'] ? true : false;
-    $('#slowRegen')[0].checked = save.race['slow_regen'] ? true : false;
-    $('#smoldering')[0].checked = save.race['smoldering'] ? true : false;
-    $('#sniper')[0].checked = save.race['sniper'] ? true : false;
-    $('#sticky')[0].checked = save.race['sticky'] ? true : false;
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
+    $('#apexPredator')[0].value = save.race['apex_predator'] || 0;
+    $('#armored')[0].value = save.race['armored'] || 0;
+    $('#beast')[0].value = save.race['beast'] || 0;
+    $('#blurry')[0].value = save.race['blurry'] || 0;
+    $('#brute')[0].value = save.race['brute'] || 0;
+    $('#cannibal')[0].value = save.race['cannibalize'] || 0;
+    $('#cautious')[0].value = save.race['cautious'] || 0;
+    $('#chameleon')[0].value = save.race['chameleon'] || 0;
+    $('#claws')[0].value = save.race['claws'] || 0;
+    $('#diverse')[0].value = save.race['diverse'] || 0;
+    $('#elusive')[0].value = save.race['elusive'] || 0;
+    $('#evil')[0].value = save.race['evil'] || 0;
+    $('#fiery')[0].value = save.race['fiery'] || 0;
+    $('#ghostly')[0].value = save.race['ghostly'] || 0;
+    $('#hivemind')[0].value = save.race['hivemind'] || 0;
+    $('#holy')[0].value = save.race['holy'] || 0;
+    $('#hyper')[0].value = save.race['hyper'] || 0;
+    $('#instincts')[0].value = save.race['instinct'] || 0;
+    $('#kindling')[0].value = save.race['kindling_kindred'] || 0;
+    $('#parasite')[0].value = save.race['parasite'] || 0;
+    $('#pathetic')[0].value = save.race['pathetic'] || 0;
+    $('#puny')[0].value = save.race['puny'] || 0;
+    $('#rhinoRage')[0].value = save.race['rage'] || 0;
+    $('#regenerative')[0].value = save.race['regenerative'] || 0;
+    $('#revive')[0].value = save.race['revive'] || 0;
+    $('#scales')[0].value = save.race['scales'] || 0;
+    $('#slaver')[0].value = save.race['slaver'] || 0;
+    $('#slow')[0].value = save.race['slow'] || 0;
+    $('#slowRegen')[0].value = save.race['slow_regen'] || 0;
+    $('#smoldering')[0].value = save.race['smoldering'] || 0;
+    $('#sniper')[0].value = save.race['sniper'] || 0;
+    $('#sticky')[0].value = save.race['sticky'] || 0;
     
     $('#zealotry')[0].checked = save.tech['fanaticism'] && save.tech['fanaticism'] >= 4 ? true : false;
     $('#vrTraining')[0].checked = save.tech['boot_camp'] && save.tech['boot_camp'] >= 2 ? true : false;
@@ -878,18 +881,18 @@ function ConvertSave(save) {
 }
 
 $(document).ready( function() {
-    var traits = $('#cTraits').children();
+    var traits = $('#traitsRow').children();
     var newRow;
     var i;
-    for (i = 0; i < traits.length; i++) {
+    for (i = 5; i < traits.length; i++) {
         if (i % 5 == 0) {
-            newRow = $('<div>').prop({className: 'row'});
+            newRow = $('<div>').prop({className: 'form-row'});
             $('#cTraits').append(newRow);
         }
         newRow.append(traits[i]);
     }
     while (i % 5 != 0) {
-        newRow.append('<div class="col"></div>');
+        newRow.append('<div class="form-group col-sm"></div>');
         i++;
     }
     $('#cTraits')[0].hidden = false;

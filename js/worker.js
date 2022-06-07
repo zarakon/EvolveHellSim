@@ -1098,7 +1098,9 @@ function ArmyRating(params, sim, size, wound) {
 
     rating *= 1 + (params.tactical * 0.05);
     
-    rating *= 1 + (params.temples * 0.01);
+    if (params.zealotry) {
+        rating *= 1 + (params.temples * 0.01);
+    }
     
     rating *= 1 + (params.warRitual / (params.warRitual + 75));
     

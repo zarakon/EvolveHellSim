@@ -694,10 +694,6 @@ function Events(params, sim, stats) {
             "inspiration"
         ];
         
-        if (!params.kindling) {
-            events.push("fire");
-        }
-        
         if (!(params.kindling || params.smoldering || params.evil || params.aquatic)) {
             events.push("fire");
         }

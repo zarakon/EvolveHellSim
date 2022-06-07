@@ -747,7 +747,7 @@ function ConvertSave(save) {
     $('#aquatic')[0].checked = (save.race.species == "sharkin" || save.race.species == "octigoran");
     $('#banana')[0].checked = save.race['banana'] ? true : false;
     $('#magic')[0].checked = save.race.universe == 'magic' ? true : false;
-    $('#rage')[0].checked = save.city.ptrait == 'rage' ? true : false;
+    $('#rage')[0].checked = save.city.ptrait.includes('rage') ? true : false;
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     $('#apexPredator')[0].value = save.race['apex_predator'] || 0;
     $('#armored')[0].value = save.race['armored'] || 0;

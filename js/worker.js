@@ -886,6 +886,9 @@ function HealSoldiers(params, sim, stats) {
     }
     
     var healCredits = params.hospitals;
+    if (params.artifical) {
+        healCredits = params.bootCamps;
+    }
     if (params.bacTanks) {
         healCredits *= 2;
     }

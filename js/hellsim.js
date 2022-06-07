@@ -751,6 +751,7 @@ function ConvertSave(save) {
     $('#technophobe')[0].checked = save.stats.achieve['technophobe'] && save.stats.achieve.technophobe.l >= 5 ? true : false;
     $('#apexPredator')[0].value = save.race['apex_predator'] || 0;
     $('#armored')[0].value = save.race['armored'] || 0;
+    $('#artifical')[0].value = save.race['artifical'] || 0;
     $('#beast')[0].value = save.race['beast'] || 0;
     $('#blurry')[0].value = save.race['blurry'] || 0;
     $('#brute')[0].value = save.race['brute'] || 0;

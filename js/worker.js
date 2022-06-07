@@ -1131,6 +1131,10 @@ function ArmyRating(params, sim, size, wound) {
         rating *= TraitSelect(params.cannibal, 1.08, 1.1, 1.15, 1.2, 1.22);
     }
     
+    if (params.ooze) {
+        rating *= TraitSelect(params.ooze, 0.8, 0.85, 0.88, 0.9, 0.92);
+    }
+    
     if (params.government == "democracy") {
         rating *= 0.95;
     }

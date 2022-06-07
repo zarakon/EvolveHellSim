@@ -770,6 +770,7 @@ function ConvertSave(save) {
     $('#hyper')[0].value = save.race['hyper'] || 0;
     $('#instincts')[0].value = save.race['instinct'] || 0;
     $('#kindling')[0].value = save.race['kindling_kindred'] || 0;
+    $('#ooze')[0].value = save.race['ooze'] || 0;
     $('#parasite')[0].value = save.race['parasite'] || 0;
     $('#pathetic')[0].value = save.race['pathetic'] || 0;
     $('#puny')[0].value = save.race['puny'] || 0;

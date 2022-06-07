@@ -95,11 +95,7 @@ function SimStart(id, simId, params, stats) {
     }
     /* Calculate patrol rating and training rate ahead of time for efficiency */
     sim.patrolRating = ArmyRating(params, false, params.patrolSize);
-    if (params.enhDroids) {
-        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
-    } else {
-        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
-    }
+    sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + DroidSize(params));
     sim.trainingTime = TrainingTime(params);
 
     LogResult(stats, " -- Sim " + sim.simId.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
@@ -128,11 +124,7 @@ function ProvideInfo (params) {
     
     fortressRating = FortressRating(params, false);
     patrolRating = ArmyRating(params, false, params.patrolSize);
-    if (params.enhDroids) {
-        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
-    } else {
-        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
-    }
+    patrolRatingDroids = ArmyRating(params, false, params.patrolSize + DroidSize(params));
     trainingTime = TrainingTime(params);
     forgeSoldiers = ForgeSoldiers(params);
 
@@ -369,11 +361,7 @@ function BloodWar(params, sim, stats) {
     /* Update patrol rating if cautious, for random weather */
     if (params.cautious) {
         sim.patrolRating = ArmyRating(params, sim, params.patrolSize);
-        if (params.enhDroids) {
-            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 2);
-        } else {
-            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 1);
-        }
+        sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + DroidSize(params));
     }
     let patrolWounds = 0;
     let extraWounds = 0;
@@ -410,7 +398,7 @@ function BloodWar(params, sim, stats) {
             } else {
                 let patrolSize = params.patrolSize;
                 if (i < params.droids) {
-                    patrolSize += params.enhDroids ? 2 : 1;
+                    patrolSize += DroidSize(params);
                 }
                 patrolRating = ArmyRating(params, sim, patrolSize, wounded);
             }
@@ -994,6 +982,9 @@ function TrainingTime(params) {
     
     /* rate is percentage points per tick */
     rate = 2.5;
+    if (params.highPop) {
+        rate *= TraitSelect(params.highPop, 1.5, 2.5, 3.5, 4.5, 5.5);
+    }
     if (params.diverse) {
         rate /= TraitSelect(params.diverse, 1.35, 1.3, 1.25, 1.2, 1.15);
     }
@@ -1146,6 +1137,14 @@ function ArmyRating(params, sim, size, wound) {
     return Math.round(rating);
 }
 
+function DroidSize(params) {
+    var size = params.enhDroids ? 2 : 1;
+    if (params.highPop) {
+        size *= TraitSelect(params.highPop, 2, 3, 4, 5, 6);
+    }
+    return size;
+}
+
 function FortressRating(params, sim) {
     var turretRating;
     var patrols;
@@ -1177,7 +1176,7 @@ function FortressRating(params, sim) {
     }
     
     if (params.droids > patrols) {
-        defenders += (params.droids - patrols);
+        defenders += (params.droids - patrols) * DroidSize(params);
     }
     
     switch (params.turretTech) {

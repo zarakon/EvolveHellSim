@@ -763,6 +763,7 @@ function ConvertSave(save) {
     $('#evil')[0].value = save.race['evil'] || 0;
     $('#fiery')[0].value = save.race['fiery'] || 0;
     $('#ghostly')[0].value = save.race['ghostly'] || 0;
+    $('#highPop')[0].value = save.race['high_pop'] || 0;
     $('#hivemind')[0].value = save.race['hivemind'] || 0;
     $('#holy')[0].value = save.race['holy'] || 0;
     $('#hyper')[0].value = save.race['hyper'] || 0;

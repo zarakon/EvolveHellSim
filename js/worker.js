@@ -864,6 +864,9 @@ function MercPrice(params, sim, stats) {
     if (params.brute){
         price *= TraitSelect(params.brute, 0.8, 0.75, 0.5, 0.4, 0.35);
     }
+    if (params.highPop){
+        price *= TraitSelect(params.highPop, 0.5, 0.34, 0.26, 0.212, 0.18);
+    }
     
     /* Convert to millions */
     price /= 1000000.0;
@@ -1129,6 +1132,10 @@ function ArmyRating(params, sim, size, wound) {
     
     if (params.government == "democracy") {
         rating *= 0.95;
+    }
+    
+    if (params.highPop) {
+        rating *= TraitSelect(params.highPop, 0.5, 0.34, 0.26, 0.212, 0.18);
     }
     
     return Math.round(rating);

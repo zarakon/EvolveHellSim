@@ -375,6 +375,7 @@ function BloodWar(params, sim, stats) {
             extraWounds = patrolWoundTotal % sim.patrols;
         }
     }
+    let droids = params.droids;
     for (let i = 0; i < sim.patrols; i++) {
         /* Check for encounter
            Less demons -> lower chance of encounter
@@ -390,15 +391,17 @@ function BloodWar(params, sim, stats) {
             var patrolRating;
             /* If no wounded, use alread-calculated patrol rating to save time */
             if (wounded == 0) {
-                if (i < params.droids) {
+                if (droids > 0) {
                     patrolRating = sim.patrolRatingDroids;
+                    droids--;
                 } else {
                     patrolRating = sim.patrolRating;
                 }
             } else {
                 let patrolSize = params.patrolSize;
-                if (i < params.droids) {
+                if (droids > 0) {
                     patrolSize += DroidSize(params);
+                    droids--;
                 }
                 patrolRating = ArmyRating(params, sim, patrolSize, wounded);
             }

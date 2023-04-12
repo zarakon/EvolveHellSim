@@ -65,9 +65,12 @@ function InitStats(params) {
         outputStr: "",
         ticks: 0,
         patrolGems: 0,
+        surveyorGems: 0,
         forgeGems: 0,
         gunGems: 0,
         gateGems: 0,
+        patrolKills: 0,
+        droneKills: 0,
         totalPreFightThreat: 0,
         minPreFightThreat: params.threat,
         maxPreFightThreat: params.threat,
@@ -168,16 +171,19 @@ function SimResults() {
             (stats.patrolFails ? " (avg " + (stats.patrolFailTicks * ticksPerHour / stats.patrolFails).toFixed(1) + " hrs)" : "") +
             "\n");
     LogResult(stats, "Soul gems per hour - Patrols: " + (stats.patrolGems / hours).toFixed(2) +
+            ",  Surveyors: " + (stats.surveyorGems / hours).toFixed(2) + 
             ",  Guns: " + (stats.gunGems / hours).toFixed(2) +
             ",  Forge: " + (stats.forgeGems / hours).toFixed(2) +
             ",  Gate Turrets: " + (stats.gateGems / hours).toFixed(2) +
-            ",  Total: " + ((stats.patrolGems + stats.gunGems + stats.forgeGems + stats.gateGems) / hours).toFixed(2) +
+            ",  Total: " + ((stats.patrolGems + stats.surveyorGems + stats.gunGems + stats.forgeGems + stats.gateGems) / hours).toFixed(2) +
             "\n");
     LogResult(stats, "Encounters:  " + stats.patrolEncounters +
             ",  per hour: " + (stats.patrolEncounters / hours).toFixed(1) +
             ",  per bloodwar: " + (stats.patrolEncounters / stats.bloodWars).toFixed(3) +
             ",  skipped: " + (stats.skippedEncounters / (stats.skippedEncounters + stats.patrolEncounters) * 100).toFixed(2) + "%" +
             "\n");
+    LogResult(stats, "Patrol kills per gem: " + (stats.patrolKills / stats.patrolGems).toFixed(2) +
+            ", Drone kills per gem: " + (stats.droneKills / stats.surveyorGems).toFixed(2) + "\n");
     LogResult(stats, "Pre-fight Threat   Avg: " + (stats.totalPreFightThreat / stats.bloodWars).toFixed(0) + 
             ",  min: " + stats.minPreFightThreat +
             ",  max: " + stats.maxPreFightThreat +
@@ -241,7 +247,7 @@ function SimResults() {
             "\n");
         LogResult(stats, "Pity avg:    " + (stats.totalPity / stats.bloodWars).toFixed(0) +
             ",  max: " + stats.maxPity +
-            ", avg per gem: " + (stats.totalPityPerGem / stats.patrolGems).toFixed(0) +
+            ", avg per gem: " + (stats.totalPityPerGem / (stats.patrolGems + stats.surveyorGems)).toFixed(0) +
             "\n");
         LogResult(stats, "Demon kills per hour: " +
             (stats.kills / hours).toFixed(0) +

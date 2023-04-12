@@ -320,25 +320,23 @@ function BloodWar(params, sim, stats) {
     let forgeSouls = 0;
 
     /* Drone Strikes */
+    let droneKills = 0;
     for (let i = 0; i < params.predators; i++) {
         if (Rand(0, sim.threat) >= Rand(0, 999)) {
             let minDemons = Math.floor(sim.threat / 50);
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
             let kills = params.advDrones ? Rand(50, 125) : Rand(25, 75);
-            if (kills < demons) {
-                sim.threat -= kills;
-                if (forgeOperating) {
-                    forgeSouls += kills;
-                }
-                stats.kills += kills;
-            } else {
-                sim.threat -= demons;
-                if (forgeOperating) {
-                    forgeSouls += demons;
-                }
-                stats.kills += demons;
+            if (kills > demons) {
+                kills = demons;
             }
+            sim.threat -= kills;
+            if (forgeOperating) {
+                forgeSouls += kills;
+            }
+            stats.kills += kills;
+            stats.droneKills += kills;
+            droneKills += kills;
         }
     }
     
@@ -357,7 +355,7 @@ function BloodWar(params, sim, stats) {
     
     /* Patrols */
     let soldiersKilled = 0;
-    let needPity = false;
+    let needPity = true;
     /* Update patrol rating if cautious, for random weather */
     if (params.cautious) {
         sim.patrolRating = ArmyRating(params, sim, params.patrolSize);
@@ -440,32 +438,32 @@ function BloodWar(params, sim, stats) {
                 }
             } else {
                 /* Normal encounter */
-                let demonsKilled = patrolRating;
-                if (demonsKilled < demons) {
+                let kills = patrolRating;
+                if (kills < demons) {
                     /* Suffer casualties if the patrol didn't kill all of the demons */
-                    soldiersKilled += PatrolCasualties(params, sim, stats, (demons - demonsKilled), false);
-                    sim.threat -= demonsKilled;
-                    if (forgeOperating) {
-                        forgeSouls += demonsKilled;
-                    }
-                    stats.kills += demonsKilled;
+                    soldiersKilled += PatrolCasualties(params, sim, stats, (demons - kills), false);
                 } else {
-                    sim.threat -= demons;
-                    if (forgeOperating) {
-                        forgeSouls += demons;
-                    }
-                    stats.kills += demons;
+                    kills = demons;
                 }
+                sim.threat -= kills;
+                if (forgeOperating) {
+                    forgeSouls += kills;
+                }
+                stats.patrolKills += kills;
+                stats.kills += kills;
                 
                 /* Chance to find a soul gem */
-                if (Rand(0, gemOdds) == 0) {
-                    stats.patrolGems++;
-                    stats.totalPityPerGem += sim.pity;
-                    sim.pity = 0;
-                } else {
-                    needPity = true;
+                if (kills > 0) {
+                    let chances = Math.round(kills / Math.max(5, 35 - Math.floor(params.beacons / 3)));
+                    for (let j = 0; j < chances; j++) {
+                        if (Rand(0, gemOdds) == 0) {
+                            stats.patrolGems++;
+                            stats.totalPityPerGem += sim.pity;
+                            sim.pity = 0;
+                            needPity = false;
+                        }
+                    }
                 }
-                
             }
         } else {
             /* Skipped encounter */
@@ -508,15 +506,9 @@ function BloodWar(params, sim, stats) {
         stats.maxPostFightThreat = sim.threat;
     }
 
-    /* Pity */
-    if (needPity && sim.pity < 10000) {
-        sim.pity++;
-    }
-
     LogVerbose(sim, params,
         " ; postThreat " + sim.threat +
         " ; dead " + soldiersKilled +
-        " ; pity " + sim.pity +
         " ; gemOdds " + gemOdds +
         "\n");
     
@@ -606,6 +598,26 @@ function BloodWar(params, sim, stats) {
             let dead = Rand(0, cap+1);
             sim.surveyors -= Math.min(dead, sim.surveyors);
         }
+    }
+    
+    if (sim.surveyors > 0 && droneKills > 0) {
+        for (let i = 0; i < sim.surveyors; i++) {
+            let searched = Math.min(100, Rand(Math.round(droneKills / sim.surveyors / 2), Math.round(droneKills / sim.surveyors)));
+            let chances = Math.round(searched / Math.max(5, 25 - Math.floor(params.beacons / 5)));
+            for (let j = 0; j < chances; j++) {
+                if (Rand(0, gemOdds) == 0) {
+                    stats.surveyorGems++;
+                    stats.totalPityPerGem += sim.pity;
+                    sim.pity = 0;
+                    needPity = false;
+                }
+            }
+        }
+    }
+
+    /* Pity */
+    if (needPity && sim.pity < 10000) {
+        sim.pity++;
     }
 
     /* Soul Attractors */

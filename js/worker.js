@@ -1112,7 +1112,11 @@ function ArmyRating(params, sim, size, wound) {
     }
     
     if (params.government == "autocracy") {
-        rating *= 1.35;
+        if (params.governor == "bureaucrat") {
+            rating *= 1.40;
+        } else {
+            rating *= 1.35;
+        }
     }
     
     rating = Math.floor(rating);

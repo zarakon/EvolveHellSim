@@ -406,7 +406,7 @@ function BloodWar(params, sim, stats) {
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
             
-            let ambushOdds = 30 + Math.max(params.elusive ? TraitSelect(params.elusive, 10, 15, 20, 25, 30) : 0, params.chameleon ? TraitSelect(params.chameleon, 5, 10, 20, 25, 30) : 0);
+            let ambushOdds = 30 + Math.max(params.elusive ? TraitSelect(params.elusive, 10, 15, 20, 25, 30) : 0, params.chameleon ? TraitSelect(params.chameleon, 10, 15, 20, 25, 30) : 0);
             
             if (Rand(0, ambushOdds) == 0) {
                 /* Ambush 

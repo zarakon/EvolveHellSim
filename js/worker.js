@@ -346,9 +346,7 @@ function BloodWar(params, sim, stats) {
     if (params.darkEnergy >= 1) {
         gemOdds -= Math.round(Math.log2(params.darkEnergy) * 2);
     }
-    for (let i = 0; i < params.beacons; i++) {
-        gemOdds = Math.round(gemOdds * 0.92);
-    }
+    gemOdds = Math.round(gemOdds * (0.948 ** params.beacons));
     if (params.ghostly) {
         gemOdds = Math.round(gemOdds * TraitSelect(params.ghostly, 0.95, 0.9, 0.85, 0.8, 0.78));
     }

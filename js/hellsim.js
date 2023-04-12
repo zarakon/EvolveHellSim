@@ -811,8 +811,8 @@ function ConvertSave(save) {
     $('#bootCamps')[0].value = save.city.boot_camp ? save.city.boot_camp.count : 0;
     $('#hospitals')[0].value = save.city.hospital ? save.city.hospital.count : 0;
     $('#fibroblast')[0].value = save.race['fibroblast'] || 0;
-    let dark = save.race.Dark.count;
-    dark *= 1 + (save.race.Harmony.count * 0.01);
+    let dark = save.prestige ? save.prestige.Dark.count : 0;
+    dark *= 1 + ((save.prestige ? save.prestige.Harmony.count : 0) * 0.01);
     $('#darkEnergy')[0].value = save.race.universe == 'evil' ? dark.toFixed(3) : 0;
     $('#warRitual')[0].value = save.race['casting'] ? save.race.casting.army : 0;
     $('#bloodLust')[0].value = save['blood'] && save.blood['lust'] ? save.blood.lust : 0;

@@ -49,10 +49,10 @@ onmessage = function(e) {
 function SimStart(id, simId, params, stats) {
     var tickLength = 250;
     if (params.hyper) {
-        tickLength *= 0.95;
+        tickLength *= TraitSelect(params.hyper, 0.98, 0.97, 0.95, 0.94, 0.93);
     }
     if (params.slow) {
-        tickLength *= 1.1;
+        tickLength *= TraitSelect(params.slow, 1.13, 1.12, 1.1, 1.08, 1.06);
     }
     var sim = {
         id: id,
@@ -95,11 +95,7 @@ function SimStart(id, simId, params, stats) {
     }
     /* Calculate patrol rating and training rate ahead of time for efficiency */
     sim.patrolRating = ArmyRating(params, false, params.patrolSize);
-    if (params.enhDroids) {
-        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
-    } else {
-        sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
-    }
+    sim.patrolRatingDroids = ArmyRating(params, false, params.patrolSize + DroidSize(params));
     sim.trainingTime = TrainingTime(params);
 
     LogResult(stats, " -- Sim " + sim.simId.toString().padStart(Math.floor(Math.log10(params.sims)) + 1, 0) + " --\n");
@@ -128,11 +124,7 @@ function ProvideInfo (params) {
     
     fortressRating = FortressRating(params, false);
     patrolRating = ArmyRating(params, false, params.patrolSize);
-    if (params.enhDroids) {
-        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 2);
-    } else {
-        patrolRatingDroids = ArmyRating(params, false, params.patrolSize + 1);
-    }
+    patrolRatingDroids = ArmyRating(params, false, params.patrolSize + DroidSize(params));
     trainingTime = TrainingTime(params);
     forgeSoldiers = ForgeSoldiers(params);
 
@@ -328,25 +320,23 @@ function BloodWar(params, sim, stats) {
     let forgeSouls = 0;
 
     /* Drone Strikes */
+    let droneKills = 0;
     for (let i = 0; i < params.predators; i++) {
         if (Rand(0, sim.threat) >= Rand(0, 999)) {
             let minDemons = Math.floor(sim.threat / 50);
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
             let kills = params.advDrones ? Rand(50, 125) : Rand(25, 75);
-            if (kills < demons) {
-                sim.threat -= kills;
-                if (forgeOperating) {
-                    forgeSouls += kills;
-                }
-                stats.kills += kills;
-            } else {
-                sim.threat -= demons;
-                if (forgeOperating) {
-                    forgeSouls += demons;
-                }
-                stats.kills += demons;
+            if (kills > demons) {
+                kills = demons;
             }
+            sim.threat -= kills;
+            if (forgeOperating) {
+                forgeSouls += kills;
+            }
+            stats.kills += kills;
+            stats.droneKills += kills;
+            droneKills += kills;
         }
     }
     
@@ -356,24 +346,18 @@ function BloodWar(params, sim, stats) {
     if (params.darkEnergy >= 1) {
         gemOdds -= Math.round(Math.log2(params.darkEnergy) * 2);
     }
-    for (let i = 0; i < params.beacons; i++) {
-        gemOdds = Math.round(gemOdds * 0.92);
-    }
+    gemOdds = Math.round(gemOdds * (0.948 ** params.beacons));
     if (params.ghostly) {
-        gemOdds = Math.round(gemOdds * 0.85);
+        gemOdds = Math.round(gemOdds * TraitSelect(params.ghostly, 0.95, 0.9, 0.85, 0.8, 0.78));
     }
     
     /* Patrols */
     let soldiersKilled = 0;
-    let needPity = false;
+    let needPity = true;
     /* Update patrol rating if cautious, for random weather */
     if (params.cautious) {
         sim.patrolRating = ArmyRating(params, sim, params.patrolSize);
-        if (params.enhDroids) {
-            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 2);
-        } else {
-            sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + 1);
-        }
+        sim.patrolRatingDroids = ArmyRating(params, sim, params.patrolSize + DroidSize(params));
     }
     let patrolWounds = 0;
     let extraWounds = 0;
@@ -387,6 +371,7 @@ function BloodWar(params, sim, stats) {
             extraWounds = patrolWoundTotal % sim.patrols;
         }
     }
+    let droids = params.droids;
     for (let i = 0; i < sim.patrols; i++) {
         /* Check for encounter
            Less demons -> lower chance of encounter
@@ -402,15 +387,17 @@ function BloodWar(params, sim, stats) {
             var patrolRating;
             /* If no wounded, use alread-calculated patrol rating to save time */
             if (wounded == 0) {
-                if (i < params.droids) {
+                if (droids > 0) {
                     patrolRating = sim.patrolRatingDroids;
+                    droids--;
                 } else {
                     patrolRating = sim.patrolRating;
                 }
             } else {
                 let patrolSize = params.patrolSize;
-                if (i < params.droids) {
-                    patrolSize += params.enhDroids ? 2 : 1;
+                if (droids > 0) {
+                    patrolSize += DroidSize(params);
+                    droids--;
                 }
                 patrolRating = ArmyRating(params, sim, patrolSize, wounded);
             }
@@ -419,7 +406,8 @@ function BloodWar(params, sim, stats) {
             let maxDemons = Math.floor(sim.threat / 10);
             let demons = Rand(minDemons, maxDemons);
             
-            let ambushOdds = (params.chameleon || params.elusive) ? 50 : 30;
+            let ambushOdds = 30 + Math.max(params.elusive ? TraitSelect(params.elusive, 10, 15, 20, 25, 30) : 0, params.chameleon ? TraitSelect(params.chameleon, 10, 15, 20, 25, 30) : 0);
+            
             if (Rand(0, ambushOdds) == 0) {
                 /* Ambush 
                    Patrol armor is ignored, at least one will be killed/injured, and no chance for a soul gem
@@ -443,32 +431,32 @@ function BloodWar(params, sim, stats) {
                 }
             } else {
                 /* Normal encounter */
-                let demonsKilled = patrolRating;
-                if (demonsKilled < demons) {
+                let kills = patrolRating;
+                if (kills < demons) {
                     /* Suffer casualties if the patrol didn't kill all of the demons */
-                    soldiersKilled += PatrolCasualties(params, sim, stats, (demons - demonsKilled), false);
-                    sim.threat -= demonsKilled;
-                    if (forgeOperating) {
-                        forgeSouls += demonsKilled;
-                    }
-                    stats.kills += demonsKilled;
+                    soldiersKilled += PatrolCasualties(params, sim, stats, (demons - kills), false);
                 } else {
-                    sim.threat -= demons;
-                    if (forgeOperating) {
-                        forgeSouls += demons;
-                    }
-                    stats.kills += demons;
+                    kills = demons;
                 }
+                sim.threat -= kills;
+                if (forgeOperating) {
+                    forgeSouls += kills;
+                }
+                stats.patrolKills += kills;
+                stats.kills += kills;
                 
                 /* Chance to find a soul gem */
-                if (Rand(0, gemOdds) == 0) {
-                    stats.patrolGems++;
-                    stats.totalPityPerGem += sim.pity;
-                    sim.pity = 0;
-                } else {
-                    needPity = true;
+                if (kills > 0) {
+                    let chances = Math.round(kills / Math.max(5, 35 - Math.floor(params.beacons / 3)));
+                    for (let j = 0; j < chances; j++) {
+                        if (Rand(0, gemOdds) == 0) {
+                            stats.patrolGems++;
+                            stats.totalPityPerGem += sim.pity;
+                            sim.pity = 0;
+                            needPity = false;
+                        }
+                    }
                 }
-                
             }
         } else {
             /* Skipped encounter */
@@ -477,7 +465,8 @@ function BloodWar(params, sim, stats) {
     }
     
     if (params.revive) {
-        let reviveMax = soldiersKilled / 3 + 0.25;
+        let reviveDivisor = TraitSelect(params.revive, 4, 4, 3, 2, 2);
+        let reviveMax = soldiersKilled / reviveDivisor + 0.25;
         let revived = Math.round(Math.random() * reviveMax);
         sim.soldiers += revived;
         stats.soldiersRevived += revived;
@@ -510,15 +499,9 @@ function BloodWar(params, sim, stats) {
         stats.maxPostFightThreat = sim.threat;
     }
 
-    /* Pity */
-    if (needPity && sim.pity < 10000) {
-        sim.pity++;
-    }
-
     LogVerbose(sim, params,
         " ; postThreat " + sim.threat +
         " ; dead " + soldiersKilled +
-        " ; pity " + sim.pity +
         " ; gemOdds " + gemOdds +
         "\n");
     
@@ -591,10 +574,10 @@ function BloodWar(params, sim, stats) {
             divisor *= 1.10;
         }
         if (params.blurry) {
-            divisor *= 1.25;
+            divisor *= TraitSelect(params.blurry, 1.10, 1.15, 1.25, 1.35, 1.4);
         }
         if (params.instincts) {
-            divisor *= 1.10;
+            divisor *= TraitSelect(params.instincts, 1.03, 1.05, 1.10, 1.15, 1.2);
         }
         if (params.shieldGen) {
             divisor += 250;
@@ -608,6 +591,26 @@ function BloodWar(params, sim, stats) {
             let dead = Rand(0, cap+1);
             sim.surveyors -= Math.min(dead, sim.surveyors);
         }
+    }
+    
+    if (sim.surveyors > 0 && droneKills > 0) {
+        for (let i = 0; i < sim.surveyors; i++) {
+            let searched = Math.min(100, Rand(Math.round(droneKills / sim.surveyors / 2), Math.round(droneKills / sim.surveyors)));
+            let chances = Math.round(searched / Math.max(5, 25 - Math.floor(params.beacons / 5)));
+            for (let j = 0; j < chances; j++) {
+                if (Rand(0, gemOdds) == 0) {
+                    stats.surveyorGems++;
+                    stats.totalPityPerGem += sim.pity;
+                    sim.pity = 0;
+                    needPity = false;
+                }
+            }
+        }
+    }
+
+    /* Pity */
+    if (needPity && sim.pity < 10000) {
+        sim.pity++;
     }
 
     /* Soul Attractors */
@@ -686,10 +689,6 @@ function Events(params, sim, stats) {
             "ruins",
             "inspiration"
         ];
-        
-        if (!params.kindling) {
-            events.push("fire");
-        }
         
         if (!(params.kindling || params.smoldering || params.evil || params.aquatic)) {
             events.push("fire");
@@ -855,7 +854,10 @@ function MercPrice(params, sim, stats) {
         price *= 1.1 ** sim.mercCounter;
     }
     if (params.brute){
-        price *= 0.5;
+        price *= TraitSelect(params.brute, 0.8, 0.75, 0.5, 0.4, 0.35);
+    }
+    if (params.highPop){
+        price *= TraitSelect(params.highPop, 0.5, 0.34, 0.26, 0.212, 0.18);
     }
     
     /* Convert to millions */
@@ -872,15 +874,23 @@ function HealSoldiers(params, sim, stats) {
     var healed = 1;
     
     if (params.regenerative) {
-        healed = 4;
+        healed = TraitSelect(params.regenerative, 2, 3, 4, 5, 6);
     }
     
     var healCredits = params.hospitals;
+    if (params.artifical) {
+        healCredits = params.bootCamps;
+    }
     if (params.bacTanks) {
         healCredits *= 2;
     }
     healCredits += params.fibroblast * 2;
     if (params.cannibal) {
+        if (healCredits >= 20) {
+            healCredits *= TraitSelect(params.cannibal, 1.08, 1.1, 1.15, 1.2, 1.22);
+        } else {
+            healCredits += Math.floor(TraitSelect(params.cannibal, 1.6, 2, 3, 4, 4.4));
+        }
         healCredits += 3;
     }
     if (params.governor == "sports") {
@@ -888,7 +898,10 @@ function HealSoldiers(params, sim, stats) {
     }
     healCredits = Math.round(healCredits);
     
-    let healCost = params.slowRegen ? 25 : 20;
+    var healCost = 20;
+    if (params.slowRegen) {
+        healCost *= TraitSelect(params.slowRegen, 1.4, 1.35, 1.25, 1.2, 1.15);
+    }
     healed += Math.floor(healCredits / healCost);
     healCredits = healCredits % healCost;
     if (Rand(0, healCredits) > Rand(0, healCost)) {
@@ -930,10 +943,10 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
             armor = 0;
         }
         if (params.armored) {
-            armor += 2;
+            armor += TraitSelect(params.armored, 1, 1, 2, 2, 2);
         }
         if (params.scales) {
-            armor += 1;
+            armor += TraitSelect(params.scales, 1, 1, 1, 1, 2);
         }
     }
     
@@ -948,7 +961,8 @@ function PatrolCasualties(params, sim, stats, demons, ambush) {
         dead = Rand(0, (casualties + 1));
         let wounded = casualties - dead;
         if (params.instincts) {
-            let reduction = Math.floor(dead * (50 / 100));
+            let proportion = TraitSelect(params.instincts, 0.15, 0.25, 0.5, 0.6, 0.65)
+            let reduction = Math.floor(dead * proportion);
             dead -= reduction;
             wounded += reduction;
         }
@@ -975,13 +989,19 @@ function TrainingTime(params) {
     }
     
     /* rate is percentage points per tick */
-    rate = params.diverse ? 2.0 : 2.5;
+    rate = 2.5;
+    if (params.highPop) {
+        rate *= TraitSelect(params.highPop, 1.5, 2.5, 3.5, 4.5, 5.5);
+    }
+    if (params.diverse) {
+        rate /= TraitSelect(params.diverse, 1.35, 1.3, 1.25, 1.2, 1.15);
+    }
     rate *= 1 + params.bootCamps * bootCampBonus;
     if (params.beast) {
-        rate *= 1.1;
+        rate *= TraitSelect(params.beast, 1.04, 1.05, 1.1, 1.15, 1.2);
     }
     if (params.brute) {
-        rate += 2.5;
+        rate += TraitSelect(params.brute, 1.25, 1.5, 2.5, 3, 3.5);
     }
     rate *= 0.25;
     
@@ -1003,7 +1023,7 @@ function ArmyRating(params, sim, size, wound) {
     }
     
     if (params.rhinoRage) {
-        rating += wounded / 2;
+        rating += wounded * TraitSelect(params.rhinoRage, 0.2, 0.3, 0.5, 0.6, 0.65);
     } else {
         rating -= wounded / 2;
     }
@@ -1012,53 +1032,55 @@ function ArmyRating(params, sim, size, wound) {
     let weaponTech = params.weaponTech;
 
     if (weaponTech > 1 && params.sniper) {
+        let sniperBonus = TraitSelect(params.sniper, 0.04, 0.06, 0.08, 0.09, 0.1)
         /* Sniper bonus doesn't apply to the base value of 1 or the Cyborg Soldiers upgrade */
         weaponTech -= params.weaponTech >= 10 ? 2 : 1;
-        weaponTech *= 1 + (0.08 * weaponTech);
+        weaponTech *= 1 + (sniperBonus * weaponTech);
         weaponTech += params.weaponTech >= 10 ? 2 : 1;
     }
     
     rating *= weaponTech;
     
     if (sim && params.rhinoRage) {
-        rating *= 1 + (0.01 * sim.wounded);
+        let rageBonus = TraitSelect(params.rhinoRage, 0.0025, 0.005, 0.01, 0.0125, 0.014);
+        rating *= 1 + (rageBonus * sim.wounded);
     }
     if (params.puny) {
-        rating *= 0.9;
+        rating *= TraitSelect(params.puny, 0.82, 0.85, 0.9, 0.94, 0.96);
     }
     if (params.claws) {
-        rating *= 1.25;
+        rating *= TraitSelect(params.claws, 1.08, 1.12, 1.25, 1.32, 1.35);
     }
     if (params.chameleon) {
-        rating *= 1.2;
+        rating *= TraitSelect(params.chameleon, 1.05, 1.1, 1.2, 1.25, 1.3);
     }
     if (params.cautious) {
         if (sim) {
             /* Not doing a full weather sim here, but it rains about 21.6% of the time
                in most biomes */
             if (Rand(0, 1000) < 216) {
-                rating *= 0.9;
+                rating *= TraitSelect(params.cautious, 0.86, 0.88, 0.9, 0.92, 0.94);
             }
         } else {
-            /* Approximate 0.9784 multiplier (1 * (1 - 0.216) + 0.9 * .216) */
-            rating *= 0.9784;
+            /* Average multiplier */
+            rating *= (1 - 0.216) * 1 + 0.216 * TraitSelect(params.cautious, 0.86, 0.88, 0.9, 0.92, 0.94);
         }
     }
 
     if (params.apexPredator) {
-        rating *= 1.3;
+        rating *= TraitSelect(params.apexPredator, 1.15, 1.2, 1.3, 1.4, 1.45);
     }
     if (params.fiery) {
-        rating *= 1.65;
+        rating *= TraitSelect(params.fiery, 1.3, 1.4, 1.65, 1.7, 1.72);
     }
     if (params.sticky) {
-        rating *= 1.15;
+        rating *= TraitSelect(params.sticky, 1.05, 1.08, 1.15, 1.18, 1.2);
     }
     if (params.pathetic) {
-        rating *= 0.75;
+        rating *= TraitSelect(params.pathetic, 0.65, 0.7, 0.75, 0.8, 0.85);
     }
     if (params.holy) {
-        rating *= 1.5;
+        rating *= TraitSelect(params.holy, 1.25, 1.3, 1.5, 1.6, 1.65);
     }
     if (params.rage) {
         rating *= 1.05;
@@ -1075,7 +1097,9 @@ function ArmyRating(params, sim, size, wound) {
 
     rating *= 1 + (params.tactical * 0.05);
     
-    rating *= 1 + (params.temples * 0.01);
+    if (params.zealotry) {
+        rating *= 1 + (params.temples * 0.01);
+    }
     
     rating *= 1 + (params.warRitual / (params.warRitual + 75));
     
@@ -1088,28 +1112,49 @@ function ArmyRating(params, sim, size, wound) {
     }
     
     if (params.government == "autocracy") {
-        rating *= 1.35;
+        if (params.governor == "bureaucrat") {
+            rating *= 1.40;
+        } else {
+            rating *= 1.35;
+        }
     }
     
     rating = Math.floor(rating);
     
     if (params.hivemind) {
+        let breakpoint = TraitSelect(params.hivemind, 12, 11, 10, 8, 7);
         if (size <= 10) {
-            rating *= (size * 0.05) + 0.5;
+            rating *= (size * 0.05) + (1 - breakpoint * 0.05);
         } else {
-            rating *= 1 + (1 - (0.99 ** (size - 10)));
+            rating *= 1 + (1 - (0.99 ** (size - breakpoint)));
         }
     }
     
     if (params.cannibal) {
-        rating *= 1.15;
+        rating *= TraitSelect(params.cannibal, 1.08, 1.1, 1.15, 1.2, 1.22);
+    }
+    
+    if (params.ooze) {
+        rating *= TraitSelect(params.ooze, 0.8, 0.85, 0.88, 0.9, 0.92);
     }
     
     if (params.government == "democracy") {
         rating *= 0.95;
     }
     
+    if (params.highPop) {
+        rating *= TraitSelect(params.highPop, 0.5, 0.34, 0.26, 0.212, 0.18);
+    }
+    
     return Math.round(rating);
+}
+
+function DroidSize(params) {
+    var size = params.enhDroids ? 2 : 1;
+    if (params.highPop) {
+        size *= TraitSelect(params.highPop, 2, 3, 4, 5, 6);
+    }
+    return size;
 }
 
 function FortressRating(params, sim) {
@@ -1143,7 +1188,7 @@ function FortressRating(params, sim) {
     }
     
     if (params.droids > patrols) {
-        defenders += (params.droids - patrols);
+        defenders += (params.droids - patrols) * DroidSize(params);
     }
     
     switch (params.turretTech) {
@@ -1169,6 +1214,22 @@ function ForgeSoldiers(params) {
     soldiers = Math.max(0, soldiers - params.guns * gunValue);
     
     return soldiers;
+}
+
+function TraitSelect(trait_rank, rank_quarter, rank_half, rank_1, rank_2, rank_3) {
+    switch (trait_rank || 1) {
+        case 0.25:
+            return rank_quarter;
+        case 0.5:
+            return rank_half;
+        case 1:
+        default:
+            return rank_1;
+        case 2:
+            return rank_2;
+        case 3:
+            return rank_3;
+    }
 }
 
 function Rand(min, max) {
